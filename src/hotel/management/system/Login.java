@@ -1,95 +1,113 @@
-
 package hotel.management.system;
-import java.awt.*;
+
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
 
-public class Login extends JFrame implements ActionListener{
-    
-    JLabel l1,l2;
-    JTextField t1;
-    JPasswordField t2;
-    JButton b1,b2;
+public class Login extends JFrame implements ActionListener {
 
-    Login(){
+    private JTextField usernameField;
+    private JPasswordField passwordField;
 
-  
-
-        l1 = new JLabel("Username");
-        l1.setBounds(40,20,100,30);
-        add(l1);
-        
-        l2 = new JLabel("Password");
-        l2.setBounds(40,70,100,30);
-        add(l2);
- 
-        t1=new JTextField();
-        t1.setBounds(150,20,150,30);
-        add(t1);
-
-        t2=new JPasswordField();
-        t2.setBounds(150,70,150,30);
-        add(t2);
-        b1 = new JButton("Login");
-        b1.setBounds(40,140,120,30);
-        b1.setFont(new Font("serif",Font.BOLD,15));
-        b1.setBackground(Color.BLACK);
-        b1.setForeground(Color.WHITE);
-        b1.addActionListener(this);
-        add(b1);
-
-        b2=new JButton("Cancel");
-        b2.setBounds(180,140,120,30);
-        b2.setFont(new Font("serif",Font.BOLD,15));
-        b2.setBackground(Color.BLACK);
-        b2.setForeground(Color.WHITE);
-        b2.addActionListener(this);
-        add(b2);
-        
-        ImageIcon i1 = new ImageIcon(ClassLoader.getSystemResource("icons/second.jpg"));
-        Image i2 = i1.getImage().getScaledInstance(1,1,Image.SCALE_DEFAULT);
-        ImageIcon i3 =  new ImageIcon(i2);
-        JLabel l3 = new JLabel(i3);
-        l3.setBounds(350,10,150,150);
-        add(l3);
-      
-        
-        
-        getContentPane().setBackground(Color.WHITE);
-        setBounds(500,200,600,300);
-        setVisible(true);
-        
+    public Login() {
+        initializeUI();
     }
-    public void actionPerformed(ActionEvent ae){
-        if(ae.getSource() == b1){
-            String user = t1.getText();
-            String pass = t2.getText();
-            
-            try{
-                Conn c = new Conn();
-                
-                String query = "select * from login where username = '" + user + "' and password = '" + pass + "'";
-                
-                ResultSet rs =c.s.executeQuery(query);
-                
-                if (rs.next()){
-                    setVisible(false);
-                    new Dashboard();
-                }else{
-                    JOptionPane.showMessageDialog(null,"invalid username or password");
-                    setVisible(false);
-                }
-                
-            }catch(Exception e){
-                e.printStackTrace();
+
+    private void initializeUI() {
+
+        setSize(400, 300);
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setTitle("Login");
+        setLayout(null);
+
+        JPanel gradientPanel = new JPanel() {
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                GradientPaint gradient = new GradientPaint(0, 0, new Color(33, 147, 176),
+                        getWidth(), getHeight(), new Color(109, 213, 237));
+                g2d.setPaint(gradient);
+                g2d.fillRect(0, 0, getWidth(), getHeight());
             }
-        }else if(ae.getSource() == b2){
-            setVisible(false);
+        };
+        gradientPanel.setBounds(0, 0, 400, 300);
+        gradientPanel.setLayout(null);
+        add(gradientPanel);
+
+        JLabel usernameLabel = new JLabel("Username:");
+        usernameLabel.setBounds(50, 50, 100, 30);
+        usernameLabel.setForeground(Color.WHITE);
+        usernameLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
+        gradientPanel.add(usernameLabel);
+
+        usernameField = new JTextField();
+        usernameField.setBounds(160, 50, 180, 30);
+        usernameField.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        gradientPanel.add(usernameField);
+
+        JLabel passwordLabel = new JLabel("Password:");
+        passwordLabel.setBounds(50, 100, 100, 30);
+        passwordLabel.setForeground(Color.WHITE);
+        passwordLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
+        gradientPanel.add(passwordLabel);
+
+        passwordField = new JPasswordField();
+        passwordField.setBounds(160, 100, 180, 30);
+        passwordField.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        gradientPanel.add(passwordField);
+
+        JButton loginButton = new JButton("Login");
+        loginButton.setBounds(70, 180, 100, 40);
+        loginButton.setBackground(new Color(255, 87, 34));
+        loginButton.setForeground(Color.WHITE);
+        loginButton.setFont(new Font("SansSerif", Font.BOLD, 14));
+        loginButton.setFocusPainted(false);
+        loginButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        loginButton.addActionListener(this);
+        gradientPanel.add(loginButton);
+
+        JButton cancelButton = new JButton("Cancel");
+        cancelButton.setBounds(220, 180, 100, 40);
+        cancelButton.setBackground(new Color(97, 97, 97));
+        cancelButton.setForeground(Color.WHITE);
+        cancelButton.setFont(new Font("SansSerif", Font.BOLD, 14));
+        cancelButton.setFocusPainted(false);
+        cancelButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        cancelButton.addActionListener(e -> setVisible(false));
+        gradientPanel.add(cancelButton);
+
+        setVisible(true);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        String username = usernameField.getText();
+        String password = new String(passwordField.getPassword());
+
+        try {
+            Conn c = new Conn();
+            // Use a PreparedStatement to avoid SQL injection and handle parameters properly.
+            String query = "SELECT * FROM login WHERE username = ? AND password = ?";
+            PreparedStatement pst = c.c.prepareStatement(query);
+            pst.setString(1, username);
+            pst.setString(2, password);
+            ResultSet rs = pst.executeQuery();
+
+            if (rs.next()) {
+                JOptionPane.showMessageDialog(this, "Login Successful", "Success", JOptionPane.INFORMATION_MESSAGE);
+                setVisible(false);
+                new Dashboard();
+            } else {
+                JOptionPane.showMessageDialog(this, "Invalid username or password", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
-    public static void main(String[] args){
-        new Login();
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(Login::new);
     }
-    
 }

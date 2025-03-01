@@ -1,67 +1,67 @@
 package hotel.management.system;
-import java.awt.*;
 import javax.swing.*;
-import javax.swing.border.*;
+import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
 import java.util.Date;
 
-public class Checkout extends JFrame implements ActionListener{
+public class Checkout extends JFrame implements ActionListener {
     Choice ccustomer;
     JLabel lblroomnumber, lblcheckintime, lblcheckouttime;
     JButton checkout, back;
 
-    Checkout(){
+    Checkout() {
         getContentPane().setBackground(Color.WHITE);
         setLayout(null);
         
         JLabel text = new JLabel("CheckOut");
-        text.setBounds(100,20,100,30);
+        text.setBounds(100, 20, 100, 30);
         text.setForeground(Color.BLUE);
-        text.setFont(new Font("Tahoma", Font.PLAIN,20));
+        text.setFont(new Font("Tahoma", Font.PLAIN, 20));
         add(text);
         
         JLabel lblid = new JLabel("Customer ID");
-        lblid.setBounds(30,80,100,30);
+        lblid.setBounds(30, 80, 100, 30);
         add(lblid);
         
         ccustomer = new Choice();
-        ccustomer.setBounds(150,80,120,25);
+        ccustomer.setBounds(150, 80, 120, 25);
         add(ccustomer);
         
         try {
             Conn c = new Conn();
-            ResultSet rs = c.s.executeQuery("select number from customer");
+            // Populate with customer_id from the new schema
+            ResultSet rs = c.s.executeQuery("SELECT customer_id FROM customer");
             while (rs.next()) {
-                ccustomer.add(rs.getString("number"));
+                ccustomer.add(rs.getString("customer_id"));
             }
         } catch(Exception e) {
             e.printStackTrace();
         }
         
         JLabel lblroom = new JLabel("Room Number");
-        lblroom.setBounds(30,130,100,30);
+        lblroom.setBounds(30, 130, 100, 30);
         add(lblroom);
         
         lblroomnumber = new JLabel();
-        lblroomnumber.setBounds(150,130,100,30);
+        lblroomnumber.setBounds(150, 130, 100, 30);
         add(lblroomnumber);
         
         JLabel lblcheckin = new JLabel("Checkin Time");
-        lblcheckin.setBounds(30,180,100,30);
+        lblcheckin.setBounds(30, 180, 100, 30);
         add(lblcheckin);
         
         lblcheckintime = new JLabel();
-        lblcheckintime.setBounds(150,180,100,30);
+        lblcheckintime.setBounds(150, 180, 100, 30);
         add(lblcheckintime);
         
         JLabel lblcheckout = new JLabel("Checkout Time");
-        lblcheckout.setBounds(30,230,100,30);
+        lblcheckout.setBounds(30, 230, 100, 30);
         add(lblcheckout);
         
         Date date = new Date();
         lblcheckouttime = new JLabel("" + date);
-        lblcheckouttime.setBounds(150,230,170,30);
+        lblcheckouttime.setBounds(150, 230, 170, 30);
         add(lblcheckouttime);
         
         checkout = new JButton("CHECKOUT");
@@ -83,10 +83,11 @@ public class Checkout extends JFrame implements ActionListener{
                 try {
                     Conn c = new Conn();
                     String id = ccustomer.getSelectedItem();
-                    ResultSet rs = c.s.executeQuery("select * from customer where number = '" + id + "'");
+                    // Query using new schema: using customer_id, and retrieving room_number and check_in_time
+                    ResultSet rs = c.s.executeQuery("SELECT * FROM customer WHERE customer_id = '" + id + "'");
                     if (rs.next()) {
-                        lblroomnumber.setText(rs.getString("room"));
-                        lblcheckintime.setText(rs.getString("checkintime"));
+                        lblroomnumber.setText(rs.getString("room_number"));
+                        lblcheckintime.setText(rs.getString("check_in_time"));
                     }
                 } catch(Exception e) {
                     e.printStackTrace();
@@ -95,13 +96,13 @@ public class Checkout extends JFrame implements ActionListener{
         });
         
         ImageIcon i4 = new ImageIcon(ClassLoader.getSystemResource("icons/sixth.JPG"));
-        Image i5 = i4.getImage().getScaledInstance(400,250, Image.SCALE_DEFAULT);
+        Image i5 = i4.getImage().getScaledInstance(400, 250, Image.SCALE_DEFAULT);
         ImageIcon i6 = new ImageIcon(i5);
         JLabel image1 = new JLabel(i6);
-        image1.setBounds(350,50,400,250);
+        image1.setBounds(350, 50, 400, 250);
         add(image1);
         
-        setBounds(300,200,800,400);
+        setBounds(300, 200, 800, 400);
         setVisible(true);
     }
 
@@ -109,8 +110,9 @@ public class Checkout extends JFrame implements ActionListener{
         if(ae.getSource() == checkout) {
             String id = ccustomer.getSelectedItem();
             String room = lblroomnumber.getText();
-            String query1 = "delete from customer where number = '" + id + "'";
-            String query2 = "update room set availability = 'Available' where roomnumber = '" + room + "'";
+            // Updated queries using new schema column names
+            String query1 = "DELETE FROM customer WHERE customer_id = '" + id + "'";
+            String query2 = "UPDATE room SET availability = 'Available' WHERE room_number = '" + room + "'";
             try {
                 Conn c = new Conn();
                 c.s.executeUpdate(query1);
@@ -131,4 +133,3 @@ public class Checkout extends JFrame implements ActionListener{
         new Checkout();
     }
 }
-

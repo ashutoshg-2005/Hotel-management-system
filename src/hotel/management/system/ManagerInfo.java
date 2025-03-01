@@ -1,4 +1,3 @@
-
 package hotel.management.system;
 import javax.swing.*;
 import java.awt.*;
@@ -6,15 +5,15 @@ import java.awt.event.*;
 import java.sql.*;
 import net.proteanit.sql.*;
 
-
 public class ManagerInfo extends JFrame implements ActionListener {
     JTable table;
     JButton back;
-    ManagerInfo(){
+    
+    public ManagerInfo(){
         getContentPane().setBackground(Color.WHITE);
         setLayout(null);
       
-        
+        // Labels for the table header
         JLabel l1 = new JLabel("Name");
         l1.setBounds(40,10,100,20);
         add(l1);
@@ -53,9 +52,11 @@ public class ManagerInfo extends JFrame implements ActionListener {
         
         try{
             Conn c = new Conn();
-            ResultSet rs = c.s.executeQuery("select * from employee where job= 'Manager'");
+            // In the new schema, the employee table still contains these columns.
+            // Filtering for 'Manager' will return rows with columns: name, age, gender, job, salary, phone, email, aadhar.
+            ResultSet rs = c.s.executeQuery("SELECT name, age, gender, job, salary, phone, email, aadhar FROM employee WHERE job = 'Manager'");
             table.setModel(DbUtils.resultSetToTableModel(rs));
-        }catch(Exception e){
+        } catch(Exception e){
             e.printStackTrace();
         }
         
@@ -68,9 +69,8 @@ public class ManagerInfo extends JFrame implements ActionListener {
         
         setBounds(300,200,1000,600);
         setVisible(true);
-        
-        
     }
+    
     public void actionPerformed(ActionEvent ae){
         setVisible(false);
         new Reception();

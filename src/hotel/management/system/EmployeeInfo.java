@@ -1,4 +1,3 @@
-
 package hotel.management.system;
 import javax.swing.*;
 import java.awt.*;
@@ -6,15 +5,15 @@ import java.awt.event.*;
 import java.sql.*;
 import net.proteanit.sql.*;
 
-
 public class EmployeeInfo extends JFrame implements ActionListener {
     JTable table;
     JButton back;
-    EmployeeInfo(){
+    
+    public EmployeeInfo(){
         getContentPane().setBackground(Color.WHITE);
         setLayout(null);
       
-        
+        // Column header labels
         JLabel l1 = new JLabel("Name");
         l1.setBounds(40,10,100,20);
         add(l1);
@@ -47,18 +46,22 @@ public class EmployeeInfo extends JFrame implements ActionListener {
         l8.setBounds(910,10,100,20);
         add(l8);
         
+        // Table to display employee info
         table = new JTable();
         table.setBounds(0,40,1000,400);
         add(table);
         
         try{
             Conn c = new Conn();
-            ResultSet rs = c.s.executeQuery("select * from employee");
+            // Explicitly select columns that we want to display
+            String query = "SELECT name, age, gender, job, salary, phone, email, aadhar FROM employee";
+            ResultSet rs = c.s.executeQuery(query);
             table.setModel(DbUtils.resultSetToTableModel(rs));
-        }catch(Exception e){
+        } catch(Exception e){
             e.printStackTrace();
         }
         
+        // Back button to return to Reception
         back = new JButton("BACK");
         back.setBackground(Color.BLACK);
         back.setForeground(Color.WHITE);
@@ -68,9 +71,8 @@ public class EmployeeInfo extends JFrame implements ActionListener {
         
         setBounds(300,200,1000,600);
         setVisible(true);
-        
-        
     }
+    
     public void actionPerformed(ActionEvent ae){
         setVisible(false);
         new Reception();

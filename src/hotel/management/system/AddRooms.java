@@ -1,151 +1,144 @@
-
 package hotel.management.system;
-
 
 import java.awt.*;
 import javax.swing.*;
-import javax.swing.border.*;
 import java.awt.event.*;
 import java.sql.*;
-import java.util.*;
 
-public class AddRooms extends JFrame implements ActionListener{
+public class AddRooms extends JFrame implements ActionListener {
 
-     JPanel contentPane;
-     JTextField t1,t2,t3,t4;
-     JComboBox comboBox, comboBox_1, comboBox_2, comboBox_3;
-    JButton b1,b2;
-    Choice c1;
+    JPanel contentPane;
+    JTextField tRoomNumber, tPrice;
+    JComboBox<String> cbAvailability, cbCleaningStatus, cbBedType;
+    JButton bAdd, bCancel;
 
     public static void main(String[] args) {
         new AddRooms().setVisible(true);
     }
 
-
     public AddRooms() {
         setBounds(450, 200, 1000, 450);
-	contentPane = new JPanel();
-	setContentPane(contentPane);
-	contentPane.setLayout(null);
-        
-        ImageIcon i1  = new ImageIcon(ClassLoader.getSystemResource("icons/twelve.jpg"));
-                Image i3 = i1.getImage().getScaledInstance(500, 300,Image.SCALE_DEFAULT);
-                ImageIcon i2 = new ImageIcon(i3);
-                JLabel l15 = new JLabel(i2);
-                l15.setBounds(400,30,500,370);
-                add(l15);
-        
-        JLabel l10 = new JLabel("Add Rooms");
-        l10.setFont(new Font("Tahoma", Font.BOLD, 18));
-	l10.setBounds(194, 10, 120, 22);
-	contentPane.add(l10);
-        
-	
-        
-	JLabel l1 = new JLabel("Room Number");
-	l1.setForeground(new Color(25, 25, 112));
-	l1.setFont(new Font("Tahoma", Font.BOLD, 14));
-	l1.setBounds(64, 70, 102, 22);
-	contentPane.add(l1);
-        
-        
-        t4 = new JTextField();
-	t4.setBounds(174, 70, 156, 20);
-	contentPane.add(t4);
-        
+        contentPane = new JPanel();
+        setContentPane(contentPane);
+        contentPane.setLayout(null);
 
-	JLabel l2 = new JLabel("Availability");
-	l2.setForeground(new Color(25, 25, 112));
-	l2.setFont(new Font("Tahoma", Font.BOLD, 14));
-	l2.setBounds(64, 110, 102, 22);
-	contentPane.add(l2);
-        
-        comboBox = new JComboBox(new String[] { "Available", "Occupied" });
-	comboBox.setBounds(176, 110, 154, 20);
-	contentPane.add(comboBox);
+        // Image on the right side
+        ImageIcon i1 = new ImageIcon(ClassLoader.getSystemResource("icons/twelve.jpg"));
+        Image i3 = i1.getImage().getScaledInstance(500, 300, Image.SCALE_DEFAULT);
+        ImageIcon i2 = new ImageIcon(i3);
+        JLabel imageLabel = new JLabel(i2);
+        imageLabel.setBounds(400, 30, 500, 370);
+        add(imageLabel);
 
+        JLabel header = new JLabel("Add Rooms");
+        header.setFont(new Font("Tahoma", Font.BOLD, 18));
+        header.setBounds(194, 10, 120, 22);
+        contentPane.add(header);
 
-	JLabel l3 = new JLabel("Cleaning Status");
-	l3.setForeground(new Color(25, 25, 112));
-	l3.setFont(new Font("Tahoma", Font.BOLD, 14));
-	l3.setBounds(64, 150, 102, 22);
-	contentPane.add(l3);
-        
-        comboBox_2 = new JComboBox(new String[] { "Cleaned", "Dirty" });
-	comboBox_2.setBounds(176, 150, 154, 20);
-	contentPane.add(comboBox_2);
+        // Room Number
+        JLabel lblRoomNumber = new JLabel("Room Number");
+        lblRoomNumber.setForeground(new Color(25, 25, 112));
+        lblRoomNumber.setFont(new Font("Tahoma", Font.BOLD, 14));
+        lblRoomNumber.setBounds(64, 70, 102, 22);
+        contentPane.add(lblRoomNumber);
 
-	JLabel l4 = new JLabel("Price");
-	l4.setForeground(new Color(25, 25, 112));
-	l4.setFont(new Font("Tahoma", Font.BOLD, 14));
-	l4.setBounds(64, 190, 102, 22);
-	contentPane.add(l4);
-        
-        t2 = new JTextField();
-	t2.setBounds(174, 190, 156, 20);
-	contentPane.add(t2);
+        tRoomNumber = new JTextField();
+        tRoomNumber.setBounds(174, 70, 156, 20);
+        contentPane.add(tRoomNumber);
 
-        JLabel l5 = new JLabel("Bed Type");
-	l5.setForeground(new Color(25, 25, 112));
-	l5.setFont(new Font("Tahoma", Font.BOLD, 14));
-	l5.setBounds(64, 230, 102, 22);
-	contentPane.add(l5);
+        // Availability
+        JLabel lblAvailability = new JLabel("Availability");
+        lblAvailability.setForeground(new Color(25, 25, 112));
+        lblAvailability.setFont(new Font("Tahoma", Font.BOLD, 14));
+        lblAvailability.setBounds(64, 110, 102, 22);
+        contentPane.add(lblAvailability);
 
+        cbAvailability = new JComboBox<>(new String[] { "Available", "Occupied" });
+        cbAvailability.setBounds(176, 110, 154, 20);
+        contentPane.add(cbAvailability);
 
-        comboBox_3 = new JComboBox(new String[] { "Single Bed", "Double Bed"});
-	comboBox_3.setBounds(176, 230, 154, 20);
-	contentPane.add(comboBox_3);
+        // Cleaning Status
+        JLabel lblCleaningStatus = new JLabel("Cleaning Status");
+        lblCleaningStatus.setForeground(new Color(25, 25, 112));
+        lblCleaningStatus.setFont(new Font("Tahoma", Font.BOLD, 14));
+        lblCleaningStatus.setBounds(64, 150, 102, 22);
+        contentPane.add(lblCleaningStatus);
 
-	
+        // Use "Clean" (instead of "Cleaned") to match new schema
+        cbCleaningStatus = new JComboBox<>(new String[] { "Clean", "Dirty" });
+        cbCleaningStatus.setBounds(176, 150, 154, 20);
+        contentPane.add(cbCleaningStatus);
 
-	
+        // Price
+        JLabel lblPrice = new JLabel("Price");
+        lblPrice.setForeground(new Color(25, 25, 112));
+        lblPrice.setFont(new Font("Tahoma", Font.BOLD, 14));
+        lblPrice.setBounds(64, 190, 102, 22);
+        contentPane.add(lblPrice);
 
-	b1 = new JButton("Add");
-	b1.addActionListener(this);
-	b1.setBounds(64, 321, 111, 33);
-        b1.setBackground(Color.BLACK);
-        b1.setForeground(Color.WHITE);
-	contentPane.add(b1);
+        tPrice = new JTextField();
+        tPrice.setBounds(174, 190, 156, 20);
+        contentPane.add(tPrice);
 
-	b2 = new JButton("Cancel");
-	b2.addActionListener(this);
-	b2.setBounds(198, 321, 111, 33);
-        b2.setBackground(Color.BLACK);
-        b2.setForeground(Color.WHITE);
-	contentPane.add(b2);
+        // Bed Type
+        JLabel lblBedType = new JLabel("Bed Type");
+        lblBedType.setForeground(new Color(25, 25, 112));
+        lblBedType.setFont(new Font("Tahoma", Font.BOLD, 14));
+        lblBedType.setBounds(64, 230, 102, 22);
+        contentPane.add(lblBedType);
 
-	
+        // Use "Single" and "Double" to match new schema (you can add "Queen" and "King" if needed)
+        cbBedType = new JComboBox<>(new String[] { "Single", "Double" });
+        cbBedType.setBounds(176, 230, 154, 20);
+        contentPane.add(cbBedType);
+
+        // Add Button
+        bAdd = new JButton("Add");
+        bAdd.addActionListener(this);
+        bAdd.setBounds(64, 321, 111, 33);
+        bAdd.setBackground(Color.BLACK);
+        bAdd.setForeground(Color.WHITE);
+        contentPane.add(bAdd);
+
+        // Cancel Button
+        bCancel = new JButton("Cancel");
+        bCancel.addActionListener(this);
+        bCancel.setBounds(198, 321, 111, 33);
+        bCancel.setBackground(Color.BLACK);
+        bCancel.setForeground(Color.WHITE);
+        contentPane.add(bCancel);
+
         contentPane.setBackground(Color.WHITE);
-    
     }
-    
-    public void actionPerformed(ActionEvent ae){
-        try{
-            
-            if(ae.getSource() == b1){
-                try{
-                Conn c = new Conn();
-                String roomnumber = t4.getText();
-                String availability = (String)comboBox.getSelectedItem();
-                String cleaning_status = (String)comboBox_2.getSelectedItem();
-                String price  = t2.getText();
-                String bed_type = (String)comboBox_3.getSelectedItem();
-                String str = "insert into room values( '"+roomnumber+"', '"+availability+"', '"+cleaning_status+"','"+price+"', '"+bed_type+"')";
-              
+
+    public void actionPerformed(ActionEvent ae) {
+        if(ae.getSource() == bAdd) {
+            try {
+                // Retrieve and convert input values
+                int roomNumber = Integer.parseInt(tRoomNumber.getText());
+                String availability = (String) cbAvailability.getSelectedItem();
+                String cleaningStatus = (String) cbCleaningStatus.getSelectedItem();
+                double price = Double.parseDouble(tPrice.getText());
+                String bedType = (String) cbBedType.getSelectedItem();
                 
-		c.s.executeUpdate(str);
-		JOptionPane.showMessageDialog(null, "Room Successfully Added");
-                this.setVisible(false);
-               
-                }catch(Exception ee){
-                    System.out.println(ee);
-                }
+                // Use a prepared statement to insert into the room table
+                Conn c = new Conn();
+                String query = "INSERT INTO room (room_number, availability, cleaning_status, price, bed_type) VALUES (?, ?, ?, ?, ?)";
+                PreparedStatement pst = c.c.prepareStatement(query);
+                pst.setInt(1, roomNumber);
+                pst.setString(2, availability);
+                pst.setString(3, cleaningStatus);
+                pst.setDouble(4, price);
+                pst.setString(5, bedType);
+                pst.executeUpdate();
+
+                JOptionPane.showMessageDialog(null, "Room Successfully Added");
+                this.dispose();
+            } catch(Exception ee) {
+                ee.printStackTrace();
             }
-            else if(ae.getSource() == b2){
-                this.setVisible(false);
-            }
-        }catch(Exception eee){
-            
+        } else if(ae.getSource() == bCancel) {
+            this.dispose();
         }
     }
 }
