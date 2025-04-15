@@ -14,68 +14,138 @@ public class SearchRoom extends JFrame implements ActionListener {
     JCheckBox available;
     
     public SearchRoom(){
-        getContentPane().setBackground(Color.WHITE);
-        setLayout(null);
+        // Modern UI setup
+        setTitle("Hotel Management System - Search Room");
+        setBounds(300, 200, 1000, 600);
         
-        JLabel text = new JLabel("Search for Room");
-        text.setFont(new Font("Tahoma", Font.PLAIN, 20));
-        text.setBounds(400, 30, 200, 30);
-        add(text);
+        // Use gradient panel for background
+        JPanel contentPane = new GradientPanel();
+        contentPane.setLayout(null);
+        setContentPane(contentPane);
+        
+        // Add header panel with title
+        JPanel headerPanel = new JPanel();
+        headerPanel.setBounds(0, 0, 1000, 60);
+        headerPanel.setBackground(new Color(45, 62, 80));
+        headerPanel.setLayout(new BorderLayout());
+        add(headerPanel);
+        
+        JLabel headerTitle = new JLabel("SEARCH FOR ROOM", JLabel.CENTER);
+        headerTitle.setFont(new Font("SansSerif", Font.BOLD, 24));
+        headerTitle.setForeground(Color.WHITE);
+        headerPanel.add(headerTitle, BorderLayout.CENTER);
+        
+        // Main search criteria panel
+        JPanel searchPanel = new JPanel();
+        searchPanel.setBounds(50, 80, 900, 70);
+        searchPanel.setLayout(null);
+        searchPanel.setBackground(new Color(255, 255, 255, 220)); // Semi-transparent white
+        searchPanel.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
+        add(searchPanel);
         
         JLabel lblbed = new JLabel("Bed Type");
-        lblbed.setBounds(50, 100, 100, 20);
-        add(lblbed);
+        lblbed.setBounds(30, 25, 100, 20);
+        lblbed.setFont(new Font("SansSerif", Font.BOLD, 14));
+        searchPanel.add(lblbed);
         
-        // Updated bed type values to match new schema
-        bedType = new JComboBox<>(new String[]{"Single", "Double"});
-        bedType.setBounds(150, 100, 150, 25);
+        // Updated bed type values with more options
+        bedType = new JComboBox<>(new String[]{"Single", "Double", "Queen", "King", "Twin"});
+        bedType.setBounds(130, 25, 150, 25);
         bedType.setBackground(Color.WHITE);
-        add(bedType);
+        bedType.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        searchPanel.add(bedType);
         
-        available = new JCheckBox("Only Display Available");
-        available.setBounds(650, 100, 150, 25);
-        available.setBackground(Color.WHITE);
-        add(available);
+        available = new JCheckBox("Only Display Available Rooms");
+        available.setBounds(350, 25, 200, 25);
+        available.setBackground(null); // Transparent background
+        available.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        available.setFocusPainted(false);
+        searchPanel.add(available);
         
-        JLabel l1 = new JLabel("Room Numbers");
-        l1.setBounds(50, 160, 100, 20);
-        add(l1);
+        submit = new AnimatedButton("SEARCH");
+        submit.setBounds(600, 20, 120, 35);
+        submit.addActionListener(this);
+        searchPanel.add(submit);
+        
+        // Table panel with improved styling
+        JPanel tablePanel = new JPanel();
+        tablePanel.setBounds(50, 170, 900, 350);
+        tablePanel.setLayout(null);
+        tablePanel.setBackground(Color.WHITE);
+        tablePanel.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
+        add(tablePanel);
+        
+        // Modern styled column headers in a header panel
+        JPanel tableHeader = new JPanel();
+        tableHeader.setBounds(0, 0, 900, 40);
+        tableHeader.setBackground(new Color(52, 73, 94));
+        tableHeader.setLayout(null);
+        tablePanel.add(tableHeader);
+        
+        // Column header labels with better styling
+        JLabel l1 = new JLabel("Room Number");
+        l1.setBounds(50, 10, 120, 20);
+        l1.setForeground(Color.WHITE);
+        l1.setFont(new Font("SansSerif", Font.BOLD, 14));
+        tableHeader.add(l1);
         
         JLabel l2 = new JLabel("Availability");
-        l2.setBounds(270, 160, 100, 20);
-        add(l2);
+        l2.setBounds(230, 10, 100, 20);
+        l2.setForeground(Color.WHITE);
+        l2.setFont(new Font("SansSerif", Font.BOLD, 14));
+        tableHeader.add(l2);
         
-        JLabel l3 = new JLabel("Status");
-        l3.setBounds(450, 160, 100, 20);
-        add(l3);
+        JLabel l3 = new JLabel("Cleaning Status");
+        l3.setBounds(410, 10, 120, 20);
+        l3.setForeground(Color.WHITE);
+        l3.setFont(new Font("SansSerif", Font.BOLD, 14));
+        tableHeader.add(l3);
         
         JLabel l4 = new JLabel("Price");
-        l4.setBounds(670, 160, 100, 20);
-        add(l4);
+        l4.setBounds(610, 10, 100, 20);
+        l4.setForeground(Color.WHITE);
+        l4.setFont(new Font("SansSerif", Font.BOLD, 14));
+        tableHeader.add(l4);
         
         JLabel l5 = new JLabel("Bed Type");
-        l5.setBounds(870, 160, 100, 20);
-        add(l5);
+        l5.setBounds(780, 10, 100, 20);
+        l5.setForeground(Color.WHITE);
+        l5.setFont(new Font("SansSerif", Font.BOLD, 14));
+        tableHeader.add(l5);
         
+        // Table with custom styling
         table = new JTable();
-        table.setBounds(0, 200, 1000, 300);
-        add(table);
+        table.setBounds(0, 40, 900, 310);
         
-        submit = new JButton("SUBMIT");
-        submit.setBackground(Color.BLACK);
-        submit.setForeground(Color.WHITE);
-        submit.setBounds(300, 520, 120, 30);
-        submit.addActionListener(this);
-        add(submit);
+        // Style the table
+        table.setRowHeight(30);
+        table.setIntercellSpacing(new Dimension(10, 5));
+        table.setGridColor(new Color(230, 230, 230));
+        table.setForeground(new Color(33, 33, 33));
+        table.setSelectionBackground(new Color(180, 210, 255));
+        table.getTableHeader().setVisible(false); // Hide default header since we have custom header
         
-        back = new JButton("BACK");
-        back.setBackground(Color.BLACK);
-        back.setForeground(Color.WHITE);
-        back.setBounds(500, 520, 120, 30);
+        tablePanel.add(table);
+        
+        // Back button
+        back = new AnimatedButton("BACK");
+        back.setBounds(450, 530, 120, 35);
         back.addActionListener(this);
         add(back);
         
-        setBounds(300, 200, 1000, 600);
+        // Add status bar at bottom
+        JPanel statusBar = new JPanel();
+        statusBar.setBounds(0, 570, 1000, 30);
+        statusBar.setBackground(new Color(45, 62, 80));
+        statusBar.setLayout(new BorderLayout());
+        JLabel statusLabel = new JLabel(" Hotel Management System | Search Room Panel");
+        statusLabel.setForeground(Color.WHITE);
+        statusBar.add(statusLabel, BorderLayout.WEST);
+        add(statusBar);
+        
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setLocationRelativeTo(null);
+        setResizable(false);
         setVisible(true);
     }
     
@@ -93,8 +163,14 @@ public class SearchRoom extends JFrame implements ActionListener {
                     rs = conn.s.executeQuery(query1);
                 }
                 table.setModel(DbUtils.resultSetToTableModel(rs));
+                
+                // Format table after data is loaded
+                if (table.getRowCount() == 0) {
+                    JOptionPane.showMessageDialog(this, "No rooms match your search criteria.", "No Results", JOptionPane.INFORMATION_MESSAGE);
+                }
             } catch(Exception e){
                 e.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Error searching for rooms: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
             }
         } else {
             setVisible(false);
@@ -103,6 +179,11 @@ public class SearchRoom extends JFrame implements ActionListener {
     }
     
     public static void main(String[] args){
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         new SearchRoom();
     }
 }

@@ -3,6 +3,7 @@ package hotel.management.system;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import javax.swing.border.*;
 import java.sql.*;
 
 public class AddDrivers extends JFrame implements ActionListener {
@@ -13,120 +14,210 @@ public class AddDrivers extends JFrame implements ActionListener {
     JButton b1, b2;
 
     public static void main(String[] args) {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         new AddDrivers().setVisible(true);
     }
 
     public AddDrivers() {
-        setBounds(450, 200, 1000, 500);
-        contentPane = new JPanel();
-        setContentPane(contentPane);
+        // Modern UI setup
+        setTitle("Hotel Management System - Add Driver");
+        setBounds(450, 200, 900, 550);
+        
+        // Use gradient panel for background
+        contentPane = new GradientPanel();
         contentPane.setLayout(null);
+        setContentPane(contentPane);
         
-        ImageIcon i1 = new ImageIcon(ClassLoader.getSystemResource("icons/eleven.jpg"));
-        Image i3 = i1.getImage().getScaledInstance(500, 300, Image.SCALE_DEFAULT);
-        ImageIcon i2 = new ImageIcon(i3);
-        JLabel l15 = new JLabel(i2);
-        l15.setBounds(400, 30, 500, 370);
-        add(l15);
+        // Add header panel with title
+        JPanel headerPanel = new JPanel();
+        headerPanel.setBounds(0, 0, 900, 60);
+        headerPanel.setBackground(new Color(45, 62, 80));
+        headerPanel.setLayout(new BorderLayout());
+        contentPane.add(headerPanel);
         
-        JLabel l10 = new JLabel("Add Drivers");
-        l10.setFont(new Font("Tahoma", Font.BOLD, 18));
-        l10.setBounds(194, 10, 120, 22);
-        contentPane.add(l10);
+        JLabel headerTitle = new JLabel("ADD NEW DRIVER", JLabel.CENTER);
+        headerTitle.setFont(new Font("SansSerif", Font.BOLD, 24));
+        headerTitle.setForeground(Color.WHITE);
+        headerPanel.add(headerTitle, BorderLayout.CENTER);
         
+        // Form panel with improved styling
+        JPanel formPanel = new JPanel();
+        formPanel.setBounds(30, 80, 340, 420);
+        formPanel.setLayout(null);
+        formPanel.setBackground(new Color(255, 255, 255, 220)); // Semi-transparent white
+        formPanel.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
+        contentPane.add(formPanel);
+        
+        // Form components with improved styling
         JLabel l1 = new JLabel("Name");
-        l1.setForeground(new Color(25, 25, 112));
-        l1.setFont(new Font("Tahoma", Font.BOLD, 14));
-        l1.setBounds(64, 70, 102, 22);
-        contentPane.add(l1);
+        l1.setFont(new Font("SansSerif", Font.BOLD, 14));
+        l1.setBounds(30, 30, 100, 25);
+        formPanel.add(l1);
         
         t1 = new JTextField();
-        t1.setBounds(174, 70, 156, 20);
-        contentPane.add(t1);
+        t1.setBounds(150, 30, 160, 25);
+        t1.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        t1.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(200, 200, 200)),
+                BorderFactory.createEmptyBorder(2, 5, 2, 5)));
+        formPanel.add(t1);
         
         JLabel l2 = new JLabel("Age");
-        l2.setForeground(new Color(25, 25, 112));
-        l2.setFont(new Font("Tahoma", Font.BOLD, 14));
-        l2.setBounds(64, 110, 102, 22);
-        contentPane.add(l2);
+        l2.setFont(new Font("SansSerif", Font.BOLD, 14));
+        l2.setBounds(30, 70, 100, 25);
+        formPanel.add(l2);
         
         t2 = new JTextField();
-        t2.setBounds(174, 110, 156, 20);
-        contentPane.add(t2);
+        t2.setBounds(150, 70, 160, 25);
+        t2.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        t2.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(200, 200, 200)),
+                BorderFactory.createEmptyBorder(2, 5, 2, 5)));
+        formPanel.add(t2);
         
         JLabel l3 = new JLabel("Gender");
-        l3.setForeground(new Color(25, 25, 112));
-        l3.setFont(new Font("Tahoma", Font.BOLD, 14));
-        l3.setBounds(64, 150, 102, 22);
-        contentPane.add(l3);
+        l3.setFont(new Font("SansSerif", Font.BOLD, 14));
+        l3.setBounds(30, 110, 100, 25);
+        formPanel.add(l3);
         
         comboBox = new JComboBox<>(new String[] { "Male", "Female", "Other" });
-        comboBox.setBounds(176, 150, 154, 20);
-        contentPane.add(comboBox);
+        comboBox.setBounds(150, 110, 160, 25);
+        comboBox.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        comboBox.setBackground(Color.WHITE);
+        formPanel.add(comboBox);
         
         JLabel l4 = new JLabel("Car Company");
-        l4.setForeground(new Color(25, 25, 112));
-        l4.setFont(new Font("Tahoma", Font.BOLD, 14));
-        l4.setBounds(64, 190, 102, 22);
-        contentPane.add(l4);
+        l4.setFont(new Font("SansSerif", Font.BOLD, 14));
+        l4.setBounds(30, 150, 100, 25);
+        formPanel.add(l4);
         
         t3 = new JTextField();
-        t3.setBounds(174, 190, 156, 20);
-        contentPane.add(t3);
+        t3.setBounds(150, 150, 160, 25);
+        t3.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        t3.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(200, 200, 200)),
+                BorderFactory.createEmptyBorder(2, 5, 2, 5)));
+        formPanel.add(t3);
         
         JLabel l5 = new JLabel("Car Brand");
-        l5.setForeground(new Color(25, 25, 112));
-        l5.setFont(new Font("Tahoma", Font.BOLD, 14));
-        l5.setBounds(64, 230, 102, 22);
-        contentPane.add(l5);
+        l5.setFont(new Font("SansSerif", Font.BOLD, 14));
+        l5.setBounds(30, 190, 100, 25);
+        formPanel.add(l5);
         
         t4 = new JTextField();
-        t4.setBounds(174, 230, 156, 20);
-        contentPane.add(t4);
+        t4.setBounds(150, 190, 160, 25);
+        t4.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        t4.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(200, 200, 200)),
+                BorderFactory.createEmptyBorder(2, 5, 2, 5)));
+        formPanel.add(t4);
         
         JLabel l6 = new JLabel("Available");
-        l6.setForeground(new Color(25, 25, 112));
-        l6.setFont(new Font("Tahoma", Font.BOLD, 14));
-        l6.setBounds(64, 270, 102, 22);
-        contentPane.add(l6);
+        l6.setFont(new Font("SansSerif", Font.BOLD, 14));
+        l6.setBounds(30, 230, 100, 25);
+        formPanel.add(l6);
         
         comboBox_1 = new JComboBox<>(new String[] { "Available", "Busy" });
-        comboBox_1.setBounds(176, 270, 154, 20);
-        contentPane.add(comboBox_1);
+        comboBox_1.setBounds(150, 230, 160, 25);
+        comboBox_1.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        comboBox_1.setBackground(Color.WHITE);
+        formPanel.add(comboBox_1);
         
         JLabel l7 = new JLabel("Location");
-        l7.setForeground(new Color(25, 25, 112));
-        l7.setFont(new Font("Tahoma", Font.BOLD, 14));
-        l7.setBounds(64, 310, 102, 22);
-        contentPane.add(l7);
+        l7.setFont(new Font("SansSerif", Font.BOLD, 14));
+        l7.setBounds(30, 270, 100, 25);
+        formPanel.add(l7);
         
         t5 = new JTextField();
-        t5.setBounds(174, 310, 156, 20);
-        contentPane.add(t5);
+        t5.setBounds(150, 270, 160, 25);
+        t5.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        t5.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(200, 200, 200)),
+                BorderFactory.createEmptyBorder(2, 5, 2, 5)));
+        formPanel.add(t5);
         
-        b1 = new JButton("Add");
+        // Help label
+        JLabel helpLabel = new JLabel("All fields are required");
+        helpLabel.setBounds(30, 310, 280, 20);
+        helpLabel.setFont(new Font("SansSerif", Font.ITALIC, 12));
+        helpLabel.setForeground(new Color(100, 100, 100));
+        formPanel.add(helpLabel);
+        
+        // Use AnimatedButton instead of regular JButton
+        b1 = new AnimatedButton("ADD DRIVER");
+        b1.setBounds(60, 350, 120, 35);
         b1.addActionListener(this);
-        b1.setBounds(64, 380, 111, 33);
-        b1.setBackground(Color.BLACK);
-        b1.setForeground(Color.WHITE);
-        contentPane.add(b1);
+        formPanel.add(b1);
         
-        b2 = new JButton("Back");
+        b2 = new AnimatedButton("BACK");
+        b2.setBounds(190, 350, 100, 35);
         b2.addActionListener(this);
-        b2.setBounds(198, 380, 111, 33);
-        b2.setBackground(Color.BLACK);
-        b2.setForeground(Color.WHITE);
-        contentPane.add(b2);
+        formPanel.add(b2);
         
-        contentPane.setBackground(Color.WHITE);
+        // Image panel with improved styling
+        JPanel imagePanel = new JPanel(new BorderLayout());
+        imagePanel.setBounds(400, 80, 470, 420);
+        imagePanel.setBackground(new Color(255, 255, 255, 220)); // Semi-transparent white
+        imagePanel.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
+        contentPane.add(imagePanel);
+        
+        // Image with improved scaling
+        try {
+            ImageIcon i1 = new ImageIcon(ClassLoader.getSystemResource("icons/eleven.jpg"));
+            Image i2 = i1.getImage().getScaledInstance(470, 420, Image.SCALE_SMOOTH);
+            ImageIcon i3 = new ImageIcon(i2);
+            JLabel image = new JLabel(i3);
+            imagePanel.add(image, BorderLayout.CENTER);
+        } catch (Exception e) {
+            JLabel errorImageLabel = new JLabel("Image not found", JLabel.CENTER);
+            errorImageLabel.setForeground(Color.RED);
+            imagePanel.add(errorImageLabel, BorderLayout.CENTER);
+        }
+        
+        // Add status bar at bottom
+        JPanel statusBar = new JPanel();
+        statusBar.setBounds(0, 520, 900, 30);
+        statusBar.setBackground(new Color(45, 62, 80));
+        statusBar.setLayout(new BorderLayout());
+        JLabel statusLabel = new JLabel(" Hotel Management System | Add Driver Panel");
+        statusLabel.setForeground(Color.WHITE);
+        statusBar.add(statusLabel, BorderLayout.WEST);
+        contentPane.add(statusBar);
+        
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setLocationRelativeTo(null);
+        setResizable(false);
     }
     
     public void actionPerformed(ActionEvent ae) {
         if (ae.getSource() == b1) {
             try {
+                // Validate input fields
+                if (t1.getText().isEmpty() || t2.getText().isEmpty() || t3.getText().isEmpty() || 
+                    t4.getText().isEmpty() || t5.getText().isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Please fill all fields", "Input Error", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                
+                // Validate age is a number
+                int age;
+                try {
+                    age = Integer.parseInt(t2.getText());
+                    if (age <= 0) {
+                        JOptionPane.showMessageDialog(this, "Age must be a positive number", "Input Error", JOptionPane.WARNING_MESSAGE);
+                        return;
+                    }
+                } catch (NumberFormatException e) {
+                    JOptionPane.showMessageDialog(this, "Age must be a valid number", "Input Error", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                
                 Conn c = new Conn();
                 String name = t1.getText();
-                int age = Integer.parseInt(t2.getText());
                 String gender = (String) comboBox.getSelectedItem();
                 String company  = t3.getText();
                 String brand = t4.getText();
@@ -144,10 +235,11 @@ public class AddDrivers extends JFrame implements ActionListener {
                 pst.setString(7, location);
                 pst.executeUpdate();
                 
-                JOptionPane.showMessageDialog(null, "Driver Successfully Added");
+                JOptionPane.showMessageDialog(this, "Driver Successfully Added", "Success", JOptionPane.INFORMATION_MESSAGE);
                 this.dispose();
-            } catch(Exception ee) {
-                System.out.println(ee);
+            } catch(Exception e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Error adding driver: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
             }
         } else if (ae.getSource() == b2) {
             this.dispose();

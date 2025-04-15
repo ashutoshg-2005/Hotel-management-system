@@ -11,21 +11,36 @@ public class Checkout extends JFrame implements ActionListener {
     JButton checkout, back;
 
     Checkout() {
-        getContentPane().setBackground(Color.WHITE);
-        setLayout(null);
+        // Modern UI setup
+        setTitle("Hotel Management System - Checkout");
+        setBounds(300, 200, 800, 400);
         
-        JLabel text = new JLabel("CheckOut");
-        text.setBounds(100, 20, 100, 30);
-        text.setForeground(Color.BLUE);
-        text.setFont(new Font("Tahoma", Font.PLAIN, 20));
-        add(text);
+        // Use gradient panel for background instead of plain white
+        JPanel contentPane = new GradientPanel();
+        contentPane.setLayout(null);
+        setContentPane(contentPane);
         
+        // Add header panel with title
+        JPanel headerPanel = new JPanel();
+        headerPanel.setBounds(0, 0, 800, 60);
+        headerPanel.setBackground(new Color(45, 62, 80));
+        headerPanel.setLayout(new BorderLayout());
+        contentPane.add(headerPanel);
+        
+        JLabel headerTitle = new JLabel("CUSTOMER CHECKOUT", JLabel.CENTER);
+        headerTitle.setFont(new Font("SansSerif", Font.BOLD, 24));
+        headerTitle.setForeground(Color.WHITE);
+        headerPanel.add(headerTitle, BorderLayout.CENTER);
+        
+        // Main content - adjusted Y positions to account for header
         JLabel lblid = new JLabel("Customer ID");
         lblid.setBounds(30, 80, 100, 30);
+        lblid.setFont(new Font("SansSerif", Font.BOLD, 14));
         add(lblid);
         
         ccustomer = new Choice();
-        ccustomer.setBounds(150, 80, 120, 25);
+        ccustomer.setBounds(150, 80, 150, 25);
+        ccustomer.setFont(new Font("SansSerif", Font.PLAIN, 14));
         add(ccustomer);
         
         try {
@@ -40,41 +55,56 @@ public class Checkout extends JFrame implements ActionListener {
         }
         
         JLabel lblroom = new JLabel("Room Number");
-        lblroom.setBounds(30, 130, 100, 30);
+        lblroom.setBounds(30, 130, 120, 30);
+        lblroom.setFont(new Font("SansSerif", Font.BOLD, 14));
         add(lblroom);
         
         lblroomnumber = new JLabel();
-        lblroomnumber.setBounds(150, 130, 100, 30);
+        lblroomnumber.setBounds(150, 130, 150, 30);
+        lblroomnumber.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        lblroomnumber.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
+        lblroomnumber.setOpaque(true);
+        lblroomnumber.setBackground(Color.WHITE);
+        lblroomnumber.setHorizontalAlignment(SwingConstants.CENTER);
         add(lblroomnumber);
         
         JLabel lblcheckin = new JLabel("Checkin Time");
-        lblcheckin.setBounds(30, 180, 100, 30);
+        lblcheckin.setBounds(30, 180, 120, 30);
+        lblcheckin.setFont(new Font("SansSerif", Font.BOLD, 14));
         add(lblcheckin);
         
         lblcheckintime = new JLabel();
-        lblcheckintime.setBounds(150, 180, 100, 30);
+        lblcheckintime.setBounds(150, 180, 180, 30);
+        lblcheckintime.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        lblcheckintime.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
+        lblcheckintime.setOpaque(true);
+        lblcheckintime.setBackground(Color.WHITE);
+        lblcheckintime.setHorizontalAlignment(SwingConstants.CENTER);
         add(lblcheckintime);
         
         JLabel lblcheckout = new JLabel("Checkout Time");
-        lblcheckout.setBounds(30, 230, 100, 30);
+        lblcheckout.setBounds(30, 230, 120, 30);
+        lblcheckout.setFont(new Font("SansSerif", Font.BOLD, 14));
         add(lblcheckout);
         
         Date date = new Date();
         lblcheckouttime = new JLabel("" + date);
-        lblcheckouttime.setBounds(150, 230, 170, 30);
+        lblcheckouttime.setBounds(150, 230, 180, 30);
+        lblcheckouttime.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        lblcheckouttime.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
+        lblcheckouttime.setOpaque(true);
+        lblcheckouttime.setBackground(Color.WHITE);
+        lblcheckouttime.setHorizontalAlignment(SwingConstants.CENTER);
         add(lblcheckouttime);
         
-        checkout = new JButton("CHECKOUT");
-        checkout.setBackground(Color.BLACK);
-        checkout.setForeground(Color.WHITE);
-        checkout.setBounds(30, 280, 120, 30);
+        // Use AnimatedButton instead of regular JButton
+        checkout = new AnimatedButton("CHECKOUT");
+        checkout.setBounds(30, 300, 150, 40);
         checkout.addActionListener(this);
         add(checkout);
         
-        back = new JButton("BACK");
-        back.setBackground(Color.BLACK);
-        back.setForeground(Color.WHITE);
-        back.setBounds(170, 280, 120, 30);
+        back = new AnimatedButton("BACK");
+        back.setBounds(200, 300, 150, 40);
         back.addActionListener(this);
         add(back);
         
@@ -95,14 +125,26 @@ public class Checkout extends JFrame implements ActionListener {
             }
         });
         
+        // Improved image handling with better scaling
         ImageIcon i4 = new ImageIcon(ClassLoader.getSystemResource("icons/sixth.JPG"));
-        Image i5 = i4.getImage().getScaledInstance(400, 250, Image.SCALE_DEFAULT);
+        Image i5 = i4.getImage().getScaledInstance(400, 250, Image.SCALE_SMOOTH);
         ImageIcon i6 = new ImageIcon(i5);
         JLabel image1 = new JLabel(i6);
-        image1.setBounds(350, 50, 400, 250);
+        image1.setBounds(350, 80, 400, 250);
         add(image1);
         
-        setBounds(300, 200, 800, 400);
+        // Add status bar at bottom
+        JPanel statusBar = new JPanel();
+        statusBar.setBounds(0, 370, 800, 30);
+        statusBar.setBackground(new Color(45, 62, 80));
+        JLabel statusLabel = new JLabel("Hotel Management System | Checkout Panel");
+        statusLabel.setForeground(Color.WHITE);
+        statusBar.add(statusLabel);
+        add(statusBar);
+        
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setResizable(false);
+        setLocationRelativeTo(null);
         setVisible(true);
     }
 
@@ -130,6 +172,11 @@ public class Checkout extends JFrame implements ActionListener {
     }
 
     public static void main(String[] args) {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         new Checkout();
     }
 }

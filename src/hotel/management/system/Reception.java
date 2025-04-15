@@ -9,14 +9,8 @@ public class Reception extends JFrame {
     private JPanel contentPane;
 
     public static void main(String[] args) {
-        // Set a modern look and feel (Nimbus in this example)
         try {
-            for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch(Exception e) {
             e.printStackTrace();
         }
@@ -25,125 +19,143 @@ public class Reception extends JFrame {
     
     public Reception() {
         setTitle("Hotel Management System - Reception");
-        // Adjusted height to accommodate all buttons
         setBounds(530, 200, 850, 650);
-        // Use a custom gradient panel for a modern background effect
         contentPane = new GradientPanel();
         contentPane.setLayout(null);
         setContentPane(contentPane);
         
-        // Add and scale image
-        ImageIcon icon = new ImageIcon(ClassLoader.getSystemResource("icons/fourth.jpg"));
-        Image img = icon.getImage().getScaledInstance(500, 500, Image.SCALE_SMOOTH);
-        JLabel imageLabel = new JLabel(new ImageIcon(img));
-        imageLabel.setBounds(250, 30, 500, 500);
-        add(imageLabel);
+        // IMPORTANT FIX: Set to DISPOSE_ON_CLOSE
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         
-        // Create buttons with modern animated effects using our custom AnimatedButton class
+        // Add header panel with title and back button
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBounds(0, 0, 850, 50);
+        headerPanel.setBackground(new Color(45, 62, 80));
+        contentPane.add(headerPanel);
+        
+        // Add prominent Back to Dashboard button at the top
+        JButton backButton = new JButton("← Back to Dashboard");
+        backButton.setFont(new Font("SansSerif", Font.BOLD, 14));
+        backButton.setForeground(Color.WHITE);
+        backButton.setBackground(new Color(217, 83, 79));
+        backButton.setFocusPainted(false);
+        backButton.setBorderPainted(false);
+        backButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        backButton.addActionListener(e -> closeReception());
+        headerPanel.add(backButton, BorderLayout.WEST);
+        
+        // Add reception title
+        JLabel titleLabel = new JLabel("RECEPTION", JLabel.CENTER);
+        titleLabel.setFont(new Font("SansSerif", Font.BOLD, 22));
+        titleLabel.setForeground(Color.WHITE);
+        headerPanel.add(titleLabel, BorderLayout.CENTER);
+        
+        // Add and scale image - adjust Y position to account for header panel
+        try {
+            ImageIcon icon = new ImageIcon(ClassLoader.getSystemResource("icons/fourth.jpg"));
+            Image img = icon.getImage().getScaledInstance(500, 500, Image.SCALE_SMOOTH);
+            JLabel imageLabel = new JLabel(new ImageIcon(img));
+            imageLabel.setBounds(250, 70, 500, 500);  // Y position adjusted from 30 to 70
+            add(imageLabel);
+        } catch (Exception e) {
+            System.err.println("Error loading image: " + e.getMessage());
+        }
+        
+        // Create buttons - adjust Y positions to account for header panel
         AnimatedButton btnNewCustomerForm = new AnimatedButton("New Customer Form");
-        btnNewCustomerForm.setBounds(10, 30, 200, 40);
+        btnNewCustomerForm.setBounds(10, 70, 200, 40);  // Y position adjusted from 30 to 70
         btnNewCustomerForm.addActionListener(e -> {
             new AddCustomer().setVisible(true);
-            setVisible(false);
         });
         contentPane.add(btnNewCustomerForm);
         
         AnimatedButton btnRoom = new AnimatedButton("Room");
-        btnRoom.setBounds(10, 80, 200, 40);
+        btnRoom.setBounds(10, 120, 200, 40);  // Y position adjusted
         btnRoom.addActionListener(e -> {
             new Room().setVisible(true);
-            setVisible(false);
         });
         contentPane.add(btnRoom);
         
         AnimatedButton btnDepartment = new AnimatedButton("Department");
-        btnDepartment.setBounds(10, 130, 200, 40);
+        btnDepartment.setBounds(10, 170, 200, 40);  // Y position adjusted
         btnDepartment.addActionListener(e -> {
             new Department().setVisible(true);
-            setVisible(false);
         });
         contentPane.add(btnDepartment);
         
         AnimatedButton btnEmployeeInfo = new AnimatedButton("All Employee Info");
-        btnEmployeeInfo.setBounds(10, 180, 200, 40);
+        btnEmployeeInfo.setBounds(10, 220, 200, 40);  // Y position adjusted
         btnEmployeeInfo.addActionListener(e -> {
             new EmployeeInfo().setVisible(true);
-            setVisible(false);
         });
         contentPane.add(btnEmployeeInfo);
         
         AnimatedButton btnCustomerInfo = new AnimatedButton("Customer Info");
-        btnCustomerInfo.setBounds(10, 230, 200, 40);
+        btnCustomerInfo.setBounds(10, 270, 200, 40);  // Y position adjusted
         btnCustomerInfo.addActionListener(e -> {
             new CustomerInfo().setVisible(true);
-            setVisible(false);
         });
         contentPane.add(btnCustomerInfo);
         
         AnimatedButton btnManagerInfo = new AnimatedButton("Manager Info");
-        btnManagerInfo.setBounds(10, 280, 200, 40);
+        btnManagerInfo.setBounds(10, 320, 200, 40);  // Y position adjusted
         btnManagerInfo.addActionListener(e -> {
             new ManagerInfo().setVisible(true);
-            setVisible(false);
         });
         contentPane.add(btnManagerInfo);
         
         AnimatedButton btnCheckOut = new AnimatedButton("Check Out");
-        btnCheckOut.setBounds(10, 330, 200, 40);
+        btnCheckOut.setBounds(10, 370, 200, 40);  // Y position adjusted
         btnCheckOut.addActionListener(e -> {
             new Checkout().setVisible(true);
-            setVisible(false);
         });
         contentPane.add(btnCheckOut);
         
         AnimatedButton btnUpdateCheck = new AnimatedButton("Update Check Status");
-        btnUpdateCheck.setBounds(10, 380, 200, 40);
+        btnUpdateCheck.setBounds(10, 420, 200, 40);  // Y position adjusted
         btnUpdateCheck.addActionListener(e -> {
             new UpdateCheck().setVisible(true);
-            setVisible(false);
         });
         contentPane.add(btnUpdateCheck);
         
         AnimatedButton btnUpdateRoom = new AnimatedButton("Update Room Status");
-        btnUpdateRoom.setBounds(10, 430, 200, 40);
+        btnUpdateRoom.setBounds(10, 470, 200, 40);  // Y position adjusted
         btnUpdateRoom.addActionListener(e -> {
             new UpdateRoom().setVisible(true);
-            setVisible(false);
         });
         contentPane.add(btnUpdateRoom);
         
         AnimatedButton btnPickUp = new AnimatedButton("Pick up Service");
-        btnPickUp.setBounds(10, 480, 200, 40);
+        btnPickUp.setBounds(10, 520, 200, 40);  // Y position adjusted
         btnPickUp.addActionListener(e -> {
             new Pickup().setVisible(true);
-            setVisible(false);
         });
         contentPane.add(btnPickUp);
         
         AnimatedButton btnSearchRoom = new AnimatedButton("Search Room");
-        btnSearchRoom.setBounds(10, 530, 200, 40);
+        btnSearchRoom.setBounds(10, 570, 200, 40);  // Y position adjusted
         btnSearchRoom.addActionListener(e -> {
             new SearchRoom().setVisible(true);
-            setVisible(false);
         });
         contentPane.add(btnSearchRoom);
         
-        AnimatedButton btnLogout = new AnimatedButton("Log Out");
-        btnLogout.setBounds(10, 580, 200, 40);
-        btnLogout.addActionListener(e -> {
-            new Login().setVisible(true);
-            setVisible(false);
-            // If a Dashboard instance exists, close it as well
-            if (Dashboard.instance != null) {
-                Dashboard.instance.dispose();
-                Dashboard.instance = null;
-            }
-        });
-        contentPane.add(btnLogout);
+        // Add status bar at bottom
+        JPanel statusBar = new JPanel();
+        statusBar.setBounds(0, 620, 850, 30);
+        statusBar.setBackground(new Color(45, 62, 80));
+        JLabel statusLabel = new JLabel("Hotel Management System | Reception Panel");
+        statusLabel.setForeground(Color.WHITE);
+        statusBar.add(statusLabel);
+        contentPane.add(statusBar);
         
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setVisible(true);
+    }
+    
+    // Clean method to close just this window
+    private void closeReception() {
+        setVisible(false);
+        dispose();
     }
 }
 
