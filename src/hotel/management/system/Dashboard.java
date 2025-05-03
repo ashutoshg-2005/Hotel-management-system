@@ -10,6 +10,7 @@ public class Dashboard extends JFrame {
     public static Dashboard instance;
     private JLabel clockLabel, dateLabel;
     private Timer clockTimer;
+    private String userRole; // Added to store the user role
 
     public static void main(String[] args) {
         try {
@@ -18,14 +19,15 @@ public class Dashboard extends JFrame {
             e.printStackTrace();
         }
         SwingUtilities.invokeLater(() -> {
-            Dashboard dashboard = new Dashboard();
+            Dashboard dashboard = new Dashboard("admin"); // Default to admin role when run directly
             instance = dashboard;
             dashboard.setVisible(true);
         });
     }
 
-    public Dashboard() {
+    public Dashboard(String userRole) { // Modified constructor to accept user role
         super("Hotel Management System");
+        this.userRole = userRole; // Store the user role
 
         // Frame settings
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -145,12 +147,14 @@ public class Dashboard extends JFrame {
         managementMenu.add(receptionMenuItem);
         menuBar.add(managementMenu);
 
-        // Admin menu with warmer orange
-        JMenu adminMenu = createMenu("Admin", new Color(255, 165, 0)); // Orange
-        adminMenu.add(createMenuItem("Add Employee", e -> openAddEmployee()));
-        adminMenu.add(createMenuItem("Add Rooms", e -> openAddRooms()));
-        adminMenu.add(createMenuItem("Add Drivers", e -> openAddDrivers()));
-        menuBar.add(adminMenu);
+        // Admin menu with warmer orange - Only add for admin and manager roles
+        if ("admin".equalsIgnoreCase(userRole) || "Manager".equalsIgnoreCase(userRole)) {
+            JMenu adminMenu = createMenu("Admin", new Color(255, 165, 0)); // Orange
+            adminMenu.add(createMenuItem("Add Employee", e -> openAddEmployee()));
+            adminMenu.add(createMenuItem("Add Rooms", e -> openAddRooms()));
+            adminMenu.add(createMenuItem("Add Drivers", e -> openAddDrivers()));
+            menuBar.add(adminMenu);
+        }
 
         // Feedback menu with purple
         JMenu feedbackMenu = createMenu("Feedback", new Color(186, 85, 211)); // Medium Orchid
@@ -213,8 +217,12 @@ public class Dashboard extends JFrame {
         quickAccessPanel.add(createQuickAccessButton("Room Information", "icons/eight.jpg", e -> openRoom()));
         quickAccessPanel.add(Box.createRigidArea(new Dimension(0, 15)));
         quickAccessPanel.add(createQuickAccessButton("Customer Information", "icons/fifth.png", e -> openCustomerInfo()));
-        quickAccessPanel.add(Box.createRigidArea(new Dimension(0, 15)));
-        quickAccessPanel.add(createQuickAccessButton("Add Room", "icons/twelve.jpg", e -> openAddRooms()));
+        
+        // Add Room quick access button only for admin and manager
+        if ("admin".equalsIgnoreCase(userRole) || "Manager".equalsIgnoreCase(userRole)) {
+            quickAccessPanel.add(Box.createRigidArea(new Dimension(0, 15)));
+            quickAccessPanel.add(createQuickAccessButton("Add Room", "icons/twelve.jpg", e -> openAddRooms()));
+        }
 
         // Status bar with rich color
         JPanel statusBar = new JPanel();
@@ -226,9 +234,10 @@ public class Dashboard extends JFrame {
         statusLabel.setForeground(Color.WHITE);
         statusBar.add(statusLabel, BorderLayout.WEST);
         
-        JLabel versionLabel = new JLabel("v2.1.0  ");
-        versionLabel.setForeground(Color.WHITE);
-        statusBar.add(versionLabel, BorderLayout.EAST);
+        // Show current user role in status bar
+        JLabel userLabel = new JLabel("Logged in as: " + userRole + "  ");
+        userLabel.setForeground(Color.WHITE);
+        statusBar.add(userLabel, BorderLayout.EAST);
 
         backgroundLabel.add(quickAccessPanel, BorderLayout.EAST);
         backgroundLabel.add(statusBar, BorderLayout.SOUTH);

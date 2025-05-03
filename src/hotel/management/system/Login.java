@@ -145,6 +145,7 @@ public class Login extends JFrame implements ActionListener {
         Connection connection = null;
         PreparedStatement pst = null;
         ResultSet rs = null;
+        String userRole = "admin"; // Default role assumption
         
         try {
             Conn c = new Conn();
@@ -159,13 +160,26 @@ public class Login extends JFrame implements ActionListener {
             rs = pst.executeQuery();
 
             if (rs.next()) {
+                // Check if this username belongs to an employee and determine their role
+                PreparedStatement pstEmp = connection.prepareStatement(
+                    "SELECT job FROM employee WHERE username = ?");
+                pstEmp.setString(1, username);
+                ResultSet empRs = pstEmp.executeQuery();
+                
+                if (empRs.next()) {
+                    userRole = empRs.getString("job");
+                } else if ("admin".equals(username)) {
+                    userRole = "admin";
+                }
+                
                 JOptionPane.showMessageDialog(this, 
                     "Login Successful", 
                     "Welcome " + username, 
                     JOptionPane.INFORMATION_MESSAGE);
                 setVisible(false);
-                // Create and make Dashboard visible - FIX: Added setVisible(true)
-                Dashboard dashboard = new Dashboard();
+                
+                // Create Dashboard with appropriate role and make it visible
+                Dashboard dashboard = new Dashboard(userRole);
                 dashboard.setVisible(true);
             } else {
                 JOptionPane.showMessageDialog(this, 

@@ -2,10 +2,9 @@ package hotel.management.system;
 
 import java.awt.*;
 import javax.swing.*;
-import javax.swing.border.*;
 import java.awt.event.*;
 import java.sql.*;
-import java.util.*;
+
 
 public class UpdateRoom extends JFrame implements ActionListener {
     Choice ccustomer;

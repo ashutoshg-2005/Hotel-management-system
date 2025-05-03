@@ -4,7 +4,7 @@ import java.awt.*;
 import javax.swing.*;
 import java.awt.event.*;
 import java.sql.*;
-import java.util.*;
+
 
 public class UpdateCheck extends JFrame implements ActionListener {
     Choice ccustomer;
