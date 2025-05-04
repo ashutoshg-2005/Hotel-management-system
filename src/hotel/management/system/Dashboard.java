@@ -362,7 +362,7 @@ public class Dashboard extends JFrame {
 
     private void openAddEmployee() {
         try {
-            new AddEmployee().setVisible(true);
+            new AddEmployee(userRole.equalsIgnoreCase("admin") || userRole.equalsIgnoreCase("Manager")).setVisible(true);
         } catch (Exception e) {
             e.printStackTrace();
         }

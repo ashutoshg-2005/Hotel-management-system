@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
 import net.proteanit.sql.*;
+import javax.swing.table.DefaultTableCellRenderer;
 
 public class Department extends JFrame implements ActionListener {
     JTable table;
@@ -130,7 +131,7 @@ public class Department extends JFrame implements ActionListener {
     
     public void actionPerformed(ActionEvent ae){
         setVisible(false);
-        new Reception();
+        dispose(); // Just dispose this window without creating a new Reception window
     }
     
     public static void main(String[] args){

@@ -10,17 +10,30 @@ import java.util.regex.Pattern;
 public class AddEmployee extends JFrame {
 
     private JTextField nameField, ageField, salaryField, phoneField, aadharField, emailField;
+    private JTextField usernameField; // Added username field
+    private JPasswordField passwordField; // Added password field
     private JComboBox<String> jobComboBox;
     private JRadioButton maleRadioButton, femaleRadioButton;
     private JButton saveButton, cancelButton;
-    private JLabel errorLabel;
+    private JLabel errorLabel, usernameLabel, passwordLabel; // Added label references
+    private JPanel credentialsPanel; // Panel to hold login credentials fields
     
     // Regular expressions for validation
     private static final String EMAIL_REGEX = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
     private static final String PHONE_REGEX = "^[0-9]{10}$";
     private static final String AADHAR_REGEX = "^[0-9]{12}$";
+    private static final String USERNAME_REGEX = "^[a-zA-Z0-9_]{4,15}$"; // Added username validation
+    
+    // Store if the current user is admin
+    private boolean isAdmin;
     
     public AddEmployee() {
+        // Default constructor for backward compatibility
+        this(false);
+    }
+    
+    public AddEmployee(boolean isAdmin) {
+        this.isAdmin = isAdmin;
         initializeUI();
         setupEventListeners();
     }
@@ -176,9 +189,42 @@ public class AddEmployee extends JFrame {
         emailField = createFormTextField();
         formPanel.add(emailField, gbc);
         
-        // Error label
+        // Credentials panel for username and password
+        credentialsPanel = new JPanel(new GridBagLayout());
+        credentialsPanel.setOpaque(false);
+        credentialsPanel.setVisible(false); // Initially hidden
+        
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        usernameLabel = createFormLabel("Username:");
+        credentialsPanel.add(usernameLabel, gbc);
+        
+        gbc.gridx = 1;
+        usernameField = createFormTextField();
+        credentialsPanel.add(usernameField, gbc);
+        
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        passwordLabel = createFormLabel("Password:");
+        credentialsPanel.add(passwordLabel, gbc);
+        
+        gbc.gridx = 1;
+        passwordField = new JPasswordField(15);
+        passwordField.setFont(new Font("Arial", Font.PLAIN, 14));
+        passwordField.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(204, 204, 204), 1),
+            BorderFactory.createEmptyBorder(5, 5, 5, 5)
+        ));
+        credentialsPanel.add(passwordField, gbc);
+        
         gbc.gridx = 0;
         gbc.gridy = 8;
+        gbc.gridwidth = 2;
+        formPanel.add(credentialsPanel, gbc);
+        
+        // Error label
+        gbc.gridx = 0;
+        gbc.gridy = 9;
         gbc.gridwidth = 2;
         errorLabel = new JLabel(" ");
         errorLabel.setFont(new Font("Arial", Font.PLAIN, 14));
@@ -187,7 +233,7 @@ public class AddEmployee extends JFrame {
         
         // Button panel
         gbc.gridx = 0;
-        gbc.gridy = 9;
+        gbc.gridy = 10;
         gbc.gridwidth = 2;
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
         buttonPanel.setOpaque(false);
@@ -263,6 +309,22 @@ public class AddEmployee extends JFrame {
         cancelButton.addActionListener(e -> {
             dispose();
         });
+        
+        // Add listener to job combo box to show/hide credentials fields
+        jobComboBox.addActionListener(e -> {
+            String selectedJob = (String) jobComboBox.getSelectedItem();
+            boolean isFrontDeskClerk = "Front Desk Clerk".equals(selectedJob);
+            
+            // Only show credentials fields if admin is adding a Front Desk Clerk
+            if (isAdmin && isFrontDeskClerk) {
+                credentialsPanel.setVisible(true);
+            } else {
+                credentialsPanel.setVisible(false);
+                // Clear fields when hidden
+                if (usernameField != null) usernameField.setText("");
+                if (passwordField != null) passwordField.setText("");
+            }
+        });
     }
     
     private boolean validateForm() {
@@ -324,6 +386,41 @@ public class AddEmployee extends JFrame {
             return false;
         }
         
+        // Validate username and password for Front Desk Clerk
+        String selectedJob = (String) jobComboBox.getSelectedItem();
+        boolean isFrontDeskClerk = "Front Desk Clerk".equals(selectedJob);
+        
+        if (isAdmin && isFrontDeskClerk) {
+            // Validate username
+            String username = usernameField.getText().trim();
+            if (username.isEmpty()) {
+                errorLabel.setText("Error: Username cannot be empty for Front Desk Clerk");
+                usernameField.requestFocus();
+                return false;
+            }
+            
+            if (!Pattern.matches(USERNAME_REGEX, username)) {
+                errorLabel.setText("Error: Username must be 4-15 characters (letters, numbers, underscore)");
+                usernameField.requestFocus();
+                return false;
+            }
+            
+            // Validate password
+            char[] passwordChars = passwordField.getPassword();
+            String password = new String(passwordChars);
+            if (password.isEmpty()) {
+                errorLabel.setText("Error: Password cannot be empty for Front Desk Clerk");
+                passwordField.requestFocus();
+                return false;
+            }
+            
+            if (password.length() < 4) {
+                errorLabel.setText("Error: Password must be at least 4 characters");
+                passwordField.requestFocus();
+                return false;
+            }
+        }
+        
         return true;
     }
     
@@ -342,30 +439,66 @@ public class AddEmployee extends JFrame {
         String aadhar = aadharField.getText().trim();
         String email = emailField.getText().trim();
         
-        Connection connection = null;
-        PreparedStatement pst = null;
+        // Get username and password if applicable
+        String username = null;
+        String password = null;
+        boolean isFrontDeskClerk = "Front Desk Clerk".equals(job);
+        
+        if (isAdmin && isFrontDeskClerk) {
+            username = usernameField.getText().trim();
+            password = new String(passwordField.getPassword());
+        }
+        
+        // Use TransactionManager for employee creation
+        TransactionManager txManager = null;
         
         try {
-            Conn c = new Conn();
-            connection = c.c;
+            txManager = new TransactionManager("admin");
+            txManager.beginTransaction();
             
-            String query = "INSERT INTO employee (name, age, gender, job, salary, phone, aadhar, email) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-            pst = connection.prepareStatement(query);
+            Conn conn = new Conn();
             
-            pst.setString(1, name);
-            pst.setInt(2, age);
-            pst.setString(3, gender);
-            pst.setString(4, job);
-            pst.setDouble(5, salary);
-            pst.setString(6, phone);
-            pst.setString(7, aadhar);
-            pst.setString(8, email);
+            // Insert login credentials first if it's a Front Desk Clerk
+            if (isAdmin && isFrontDeskClerk && username != null && password != null) {
+                // Check if username already exists
+                ResultSet rs = conn.executeQuery("SELECT username FROM login WHERE username = ?", username);
+                
+                if (rs.next()) {
+                    errorLabel.setText("Error: Username already exists");
+                    usernameField.requestFocus();
+                    
+                    // Rollback the transaction
+                    if (txManager.isTransactionActive()) {
+                        txManager.rollbackTransaction("Username already exists");
+                    }
+                    return;
+                }
+                
+                // Insert into login table
+                conn.executeUpdate("INSERT INTO login (username, password) VALUES (?, ?)", username, password);
+            }
             
-            pst.executeUpdate();
+            // Insert employee record
+            if (isAdmin && isFrontDeskClerk && username != null) {
+                // With username for Front Desk Clerk
+                conn.executeUpdate(
+                    "INSERT INTO employee (name, age, gender, job, salary, phone, aadhar, email, username) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    name, age, gender, job, salary, phone, aadhar, email, username
+                );
+            } else {
+                // Without username for other employees
+                conn.executeUpdate(
+                    "INSERT INTO employee (name, age, gender, job, salary, phone, aadhar, email) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                    name, age, gender, job, salary, phone, aadhar, email
+                );
+            }
+            
+            // Commit transaction
+            txManager.commitTransaction();
             
             JOptionPane.showMessageDialog(
                 this,
-                "Employee added successfully!",
+                "Employee added successfully!\nTransaction ID: " + txManager.getTransactionId(),
                 "Success",
                 JOptionPane.INFORMATION_MESSAGE
             );
@@ -373,6 +506,15 @@ public class AddEmployee extends JFrame {
             clearForm();
             
         } catch (SQLIntegrityConstraintViolationException ex) {
+            // Rollback the transaction
+            if (txManager != null && txManager.isTransactionActive()) {
+                try {
+                    txManager.rollbackTransaction("Constraint violation: " + ex.getMessage());
+                } catch (SQLException rollbackEx) {
+                    System.err.println("Error during rollback: " + rollbackEx.getMessage());
+                }
+            }
+            
             JOptionPane.showMessageDialog(
                 this,
                 "This employee already exists or duplicate information provided.",
@@ -380,14 +522,58 @@ public class AddEmployee extends JFrame {
                 JOptionPane.ERROR_MESSAGE
             );
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(
-                this,
-                "Database error: " + ex.getMessage(),
-                "Error",
-                JOptionPane.ERROR_MESSAGE
-            );
+            // Rollback the transaction
+            if (txManager != null && txManager.isTransactionActive()) {
+                try {
+                    txManager.rollbackTransaction("SQL error: " + ex.getMessage());
+                } catch (SQLException rollbackEx) {
+                    System.err.println("Error during rollback: " + rollbackEx.getMessage());
+                }
+            }
+            
+            // Handle specific SQL errors
+            if (ex.getMessage().contains("Lock wait timeout")) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "Database is busy. Please try again in a moment.",
+                    "Timeout Error",
+                    JOptionPane.ERROR_MESSAGE
+                );
+            } else if (ex.getMessage().contains("Deadlock")) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "Transaction deadlock detected. Please try again.",
+                    "Deadlock Error",
+                    JOptionPane.ERROR_MESSAGE
+                );
+                
+                // Log the deadlock
+                if (txManager != null) {
+                    try {
+                        txManager.logDeadlock(ex.getMessage());
+                    } catch (SQLException logEx) {
+                        System.err.println("Error logging deadlock: " + logEx.getMessage());
+                    }
+                }
+            } else {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "Database error: " + ex.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+                );
+            }
             ex.printStackTrace();
         } catch (Exception ex) {
+            // Rollback the transaction
+            if (txManager != null && txManager.isTransactionActive()) {
+                try {
+                    txManager.rollbackTransaction("Unexpected error: " + ex.getMessage());
+                } catch (SQLException rollbackEx) {
+                    System.err.println("Error during rollback: " + rollbackEx.getMessage());
+                }
+            }
+            
             JOptionPane.showMessageDialog(
                 this,
                 "An unexpected error occurred: " + ex.getMessage(),
@@ -395,12 +581,6 @@ public class AddEmployee extends JFrame {
                 JOptionPane.ERROR_MESSAGE
             );
             ex.printStackTrace();
-        } finally {
-            try {
-                if (pst != null) pst.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
         }
     }
     
@@ -413,6 +593,11 @@ public class AddEmployee extends JFrame {
         phoneField.setText("");
         aadharField.setText("");
         emailField.setText("");
+        
+        // Clear login fields if they exist
+        if (usernameField != null) usernameField.setText("");
+        if (passwordField != null) passwordField.setText("");
+        
         errorLabel.setText(" ");
         nameField.requestFocus();
     }
@@ -423,6 +608,6 @@ public class AddEmployee extends JFrame {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        SwingUtilities.invokeLater(() -> new AddEmployee());
+        SwingUtilities.invokeLater(() -> new AddEmployee(true)); // For testing with admin rights
     }
 }

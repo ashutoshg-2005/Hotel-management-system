@@ -195,6 +195,9 @@ public class AddDrivers extends JFrame implements ActionListener {
     
     public void actionPerformed(ActionEvent ae) {
         if (ae.getSource() == b1) {
+            // Use TransactionManager for driver creation
+            TransactionManager txManager = null;
+            
             try {
                 // Validate input fields
                 if (t1.getText().isEmpty() || t2.getText().isEmpty() || t3.getText().isEmpty() || 
@@ -216,7 +219,10 @@ public class AddDrivers extends JFrame implements ActionListener {
                     return;
                 }
                 
-                Conn c = new Conn();
+                txManager = new TransactionManager("admin");
+                txManager.beginTransaction();
+                
+                Conn conn = new Conn();
                 String name = t1.getText();
                 String gender = (String) comboBox.getSelectedItem();
                 String company  = t3.getText();
@@ -224,22 +230,110 @@ public class AddDrivers extends JFrame implements ActionListener {
                 String available = (String) comboBox_1.getSelectedItem();
                 String location = t5.getText();
                 
-                String query = "INSERT INTO driver (name, age, gender, company, brand, available, location) VALUES (?, ?, ?, ?, ?, ?, ?)";
-                PreparedStatement pst = c.c.prepareStatement(query);
-                pst.setString(1, name);
-                pst.setInt(2, age);
-                pst.setString(3, gender);
-                pst.setString(4, company);
-                pst.setString(5, brand);
-                pst.setString(6, available);
-                pst.setString(7, location);
-                pst.executeUpdate();
+                int result = conn.executeUpdate(
+                    "INSERT INTO driver (name, age, gender, company, brand, available, location) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    name, age, gender, company, brand, available, location
+                );
                 
-                JOptionPane.showMessageDialog(this, "Driver Successfully Added", "Success", JOptionPane.INFORMATION_MESSAGE);
-                this.dispose();
-            } catch(Exception e) {
-                e.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Error adding driver: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+                if (result > 0) {
+                    // Commit the transaction
+                    txManager.commitTransaction();
+                    
+                    JOptionPane.showMessageDialog(
+                        this, 
+                        "Driver Successfully Added\nTransaction ID: " + txManager.getTransactionId(), 
+                        "Success", 
+                        JOptionPane.INFORMATION_MESSAGE
+                    );
+                    this.dispose();
+                } else {
+                    if (txManager.isTransactionActive()) {
+                        txManager.rollbackTransaction("No rows affected");
+                    }
+                    
+                    JOptionPane.showMessageDialog(
+                        this, 
+                        "Failed to add driver. Please try again.", 
+                        "Error", 
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                }
+            } catch (SQLIntegrityConstraintViolationException ex) {
+                // Rollback the transaction
+                if (txManager != null && txManager.isTransactionActive()) {
+                    try {
+                        txManager.rollbackTransaction("Constraint violation: " + ex.getMessage());
+                    } catch (SQLException rollbackEx) {
+                        System.err.println("Error during rollback: " + rollbackEx.getMessage());
+                    }
+                }
+                
+                JOptionPane.showMessageDialog(
+                    this,
+                    "This driver already exists or duplicate information provided.",
+                    "Duplicate Entry",
+                    JOptionPane.ERROR_MESSAGE
+                );
+            } catch (SQLException ex) {
+                // Rollback the transaction
+                if (txManager != null && txManager.isTransactionActive()) {
+                    try {
+                        txManager.rollbackTransaction("SQL error: " + ex.getMessage());
+                    } catch (SQLException rollbackEx) {
+                        System.err.println("Error during rollback: " + rollbackEx.getMessage());
+                    }
+                }
+                
+                // Handle specific SQL errors
+                if (ex.getMessage().contains("Lock wait timeout")) {
+                    JOptionPane.showMessageDialog(
+                        this,
+                        "Database is busy. Please try again in a moment.",
+                        "Timeout Error",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                } else if (ex.getMessage().contains("Deadlock")) {
+                    JOptionPane.showMessageDialog(
+                        this,
+                        "Transaction deadlock detected. Please try again.",
+                        "Deadlock Error",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                    
+                    // Log the deadlock
+                    if (txManager != null) {
+                        try {
+                            txManager.logDeadlock(ex.getMessage());
+                        } catch (SQLException logEx) {
+                            System.err.println("Error logging deadlock: " + logEx.getMessage());
+                        }
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(
+                        this,
+                        "Database error: " + ex.getMessage(),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                }
+                ex.printStackTrace();
+            } catch (Exception ex) {
+                // Rollback the transaction
+                if (txManager != null && txManager.isTransactionActive()) {
+                    try {
+                        txManager.rollbackTransaction("Unexpected error: " + ex.getMessage());
+                    } catch (SQLException rollbackEx) {
+                        System.err.println("Error during rollback: " + rollbackEx.getMessage());
+                    }
+                }
+                
+                JOptionPane.showMessageDialog(
+                    this,
+                    "An unexpected error occurred: " + ex.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+                );
+                ex.printStackTrace();
             }
         } else if (ae.getSource() == b2) {
             this.dispose();

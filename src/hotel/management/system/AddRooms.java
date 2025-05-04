@@ -10,7 +10,7 @@ public class AddRooms extends JFrame {
 
     private JPanel contentPane;
     private JTextField roomNumberField, priceField;
-    private JComboBox<String> availabilityComboBox, cleaningStatusComboBox, bedTypeComboBox, roomTypeComboBox;
+    private JComboBox<String> availabilityComboBox, cleaningStatusComboBox, bedTypeComboBox;
     private JButton addButton, cancelButton;
     private JLabel errorLabel;
 
@@ -79,66 +79,53 @@ public class AddRooms extends JFrame {
         roomNumberField.setBounds(160, 20, 180, 25);
         formPanel.add(roomNumberField);
         
-        // Room Type
-        JLabel roomTypeLabel = new JLabel("Room Type:");
-        roomTypeLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
-        roomTypeLabel.setBounds(30, 60, 120, 25);
-        formPanel.add(roomTypeLabel);
-        
-        String[] roomTypes = { "Standard", "Deluxe", "Suite", "Executive", "Presidential" };
-        roomTypeComboBox = new JComboBox<>(roomTypes);
-        roomTypeComboBox.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        roomTypeComboBox.setBounds(160, 60, 180, 25);
-        roomTypeComboBox.setBackground(Color.WHITE);
-        formPanel.add(roomTypeComboBox);
-        
         // Availability
         JLabel availabilityLabel = new JLabel("Availability:");
         availabilityLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
-        availabilityLabel.setBounds(30, 100, 120, 25);
+        availabilityLabel.setBounds(30, 60, 120, 25);
         formPanel.add(availabilityLabel);
         
         String[] availabilityStatus = { "Available", "Occupied", "Reserved", "Maintenance" };
         availabilityComboBox = new JComboBox<>(availabilityStatus);
         availabilityComboBox.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        availabilityComboBox.setBounds(160, 100, 180, 25);
+        availabilityComboBox.setBounds(160, 60, 180, 25);
         availabilityComboBox.setBackground(Color.WHITE);
         formPanel.add(availabilityComboBox);
         
         // Cleaning Status
         JLabel cleaningStatusLabel = new JLabel("Cleaning Status:");
         cleaningStatusLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
-        cleaningStatusLabel.setBounds(30, 140, 120, 25);
+        cleaningStatusLabel.setBounds(30, 100, 120, 25);
         formPanel.add(cleaningStatusLabel);
         
         String[] cleaningStatus = { "Clean", "Dirty", "Cleaning in Progress" };
         cleaningStatusComboBox = new JComboBox<>(cleaningStatus);
         cleaningStatusComboBox.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        cleaningStatusComboBox.setBounds(160, 140, 180, 25);
+        cleaningStatusComboBox.setBounds(160, 100, 180, 25);
         cleaningStatusComboBox.setBackground(Color.WHITE);
         formPanel.add(cleaningStatusComboBox);
         
         // Price
         JLabel priceLabel = new JLabel("Price per Night:");
         priceLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
-        priceLabel.setBounds(30, 180, 120, 25);
+        priceLabel.setBounds(30, 140, 120, 25);
         formPanel.add(priceLabel);
         
         priceField = new JTextField();
         priceField.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        priceField.setBounds(160, 180, 180, 25);
+        priceField.setBounds(160, 140, 180, 25);
         formPanel.add(priceField);
         
         // Bed Type
         JLabel bedTypeLabel = new JLabel("Bed Type:");
         bedTypeLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
-        bedTypeLabel.setBounds(30, 220, 120, 25);
+        bedTypeLabel.setBounds(30, 180, 120, 25);
         formPanel.add(bedTypeLabel);
         
         String[] bedTypes = { "Single", "Double", "Queen", "King", "Twin" };
         bedTypeComboBox = new JComboBox<>(bedTypes);
         bedTypeComboBox.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        bedTypeComboBox.setBounds(160, 220, 180, 25);
+        bedTypeComboBox.setBounds(160, 180, 180, 25);
         bedTypeComboBox.setBackground(Color.WHITE);
         formPanel.add(bedTypeComboBox);
         
@@ -146,16 +133,16 @@ public class AddRooms extends JFrame {
         errorLabel = new JLabel("");
         errorLabel.setFont(new Font("SansSerif", Font.PLAIN, 13));
         errorLabel.setForeground(Color.RED);
-        errorLabel.setBounds(30, 260, 310, 25);
+        errorLabel.setBounds(30, 220, 310, 25);
         formPanel.add(errorLabel);
         
         // Buttons - use AnimatedButton instead
         addButton = new AnimatedButton("Add Room");
-        addButton.setBounds(60, 300, 120, 35);
+        addButton.setBounds(60, 260, 120, 35);
         formPanel.add(addButton);
         
         cancelButton = new AnimatedButton("Cancel");
-        cancelButton.setBounds(200, 300, 120, 35);
+        cancelButton.setBounds(200, 260, 120, 35);
         formPanel.add(cancelButton);
         
         // Image panel with improved styling
@@ -277,25 +264,23 @@ public class AddRooms extends JFrame {
             return;
         }
         
-        Connection connection = null;
-        PreparedStatement pst = null;
+        // Use TransactionManager for room creation
+        TransactionManager txManager = null;
         
         try {
             int roomNumber = Integer.parseInt(roomNumberField.getText().trim());
-            String roomType = (String) roomTypeComboBox.getSelectedItem();
             String availability = (String) availabilityComboBox.getSelectedItem();
             String cleaningStatus = (String) cleaningStatusComboBox.getSelectedItem();
             double price = Double.parseDouble(priceField.getText().trim());
             String bedType = (String) bedTypeComboBox.getSelectedItem();
             
-            Conn c = new Conn();
-            connection = c.c;
+            txManager = new TransactionManager("admin");
+            txManager.beginTransaction();
+            
+            Conn conn = new Conn();
             
             // Check if room number already exists
-            String checkQuery = "SELECT COUNT(*) FROM room WHERE room_number = ?";
-            pst = connection.prepareStatement(checkQuery);
-            pst.setInt(1, roomNumber);
-            ResultSet rs = pst.executeQuery();
+            ResultSet rs = conn.executeQuery("SELECT COUNT(*) FROM room WHERE room_number = ?", roomNumber);
             
             if (rs.next() && rs.getInt(1) > 0) {
                 JOptionPane.showMessageDialog(
@@ -305,33 +290,37 @@ public class AddRooms extends JFrame {
                     JOptionPane.ERROR_MESSAGE
                 );
                 roomNumberField.requestFocus();
+                
+                // Rollback the transaction
+                if (txManager.isTransactionActive()) {
+                    txManager.rollbackTransaction("Room number already exists");
+                }
                 return;
             }
             
-            // Close previous statement
-            pst.close();
-            
             // Insert new room
-            String insertQuery = "INSERT INTO room (room_number, room_type, availability, cleaning_status, price, bed_type) VALUES (?, ?, ?, ?, ?, ?)";
-            pst = connection.prepareStatement(insertQuery);
-            pst.setInt(1, roomNumber);
-            pst.setString(2, roomType);
-            pst.setString(3, availability);
-            pst.setString(4, cleaningStatus);
-            pst.setDouble(5, price);
-            pst.setString(6, bedType);
-            
-            int result = pst.executeUpdate();
+            int result = conn.executeUpdate(
+                "INSERT INTO room (room_number, availability, cleaning_status, price, bed_type) VALUES (?, ?, ?, ?, ?)",
+                roomNumber, availability, cleaningStatus, price, bedType
+            );
             
             if (result > 0) {
+                // Commit the transaction
+                txManager.commitTransaction();
+                
                 JOptionPane.showMessageDialog(
                     this,
-                    "Room has been added successfully!",
+                    "Room has been added successfully!\nTransaction ID: " + txManager.getTransactionId(),
                     "Success",
                     JOptionPane.INFORMATION_MESSAGE
                 );
                 clearForm();
             } else {
+                // Rollback the transaction if no rows were affected
+                if (txManager.isTransactionActive()) {
+                    txManager.rollbackTransaction("Failed to add room");
+                }
+                
                 JOptionPane.showMessageDialog(
                     this,
                     "Failed to add room. Please try again.",
@@ -341,6 +330,15 @@ public class AddRooms extends JFrame {
             }
             
         } catch (SQLIntegrityConstraintViolationException ex) {
+            // Rollback the transaction
+            if (txManager != null && txManager.isTransactionActive()) {
+                try {
+                    txManager.rollbackTransaction("Constraint violation: " + ex.getMessage());
+                } catch (SQLException rollbackEx) {
+                    System.err.println("Error during rollback: " + rollbackEx.getMessage());
+                }
+            }
+            
             JOptionPane.showMessageDialog(
                 this,
                 "This room number already exists.",
@@ -349,14 +347,58 @@ public class AddRooms extends JFrame {
             );
             roomNumberField.requestFocus();
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(
-                this,
-                "Database error: " + ex.getMessage(),
-                "Error",
-                JOptionPane.ERROR_MESSAGE
-            );
+            // Rollback the transaction
+            if (txManager != null && txManager.isTransactionActive()) {
+                try {
+                    txManager.rollbackTransaction("SQL error: " + ex.getMessage());
+                } catch (SQLException rollbackEx) {
+                    System.err.println("Error during rollback: " + rollbackEx.getMessage());
+                }
+            }
+            
+            // Handle specific SQL errors
+            if (ex.getMessage().contains("Lock wait timeout")) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "Database is busy. Please try again in a moment.",
+                    "Timeout Error",
+                    JOptionPane.ERROR_MESSAGE
+                );
+            } else if (ex.getMessage().contains("Deadlock")) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "Transaction deadlock detected. Please try again.",
+                    "Deadlock Error",
+                    JOptionPane.ERROR_MESSAGE
+                );
+                
+                // Log the deadlock
+                if (txManager != null) {
+                    try {
+                        txManager.logDeadlock(ex.getMessage());
+                    } catch (SQLException logEx) {
+                        System.err.println("Error logging deadlock: " + logEx.getMessage());
+                    }
+                }
+            } else {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "Database error: " + ex.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+                );
+            }
             ex.printStackTrace();
         } catch (Exception ex) {
+            // Rollback the transaction
+            if (txManager != null && txManager.isTransactionActive()) {
+                try {
+                    txManager.rollbackTransaction("Unexpected error: " + ex.getMessage());
+                } catch (SQLException rollbackEx) {
+                    System.err.println("Error during rollback: " + rollbackEx.getMessage());
+                }
+            }
+            
             JOptionPane.showMessageDialog(
                 this,
                 "An unexpected error occurred: " + ex.getMessage(),
@@ -364,18 +406,11 @@ public class AddRooms extends JFrame {
                 JOptionPane.ERROR_MESSAGE
             );
             ex.printStackTrace();
-        } finally {
-            try {
-                if (pst != null) pst.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
         }
     }
     
     private void clearForm() {
         roomNumberField.setText("");
-        roomTypeComboBox.setSelectedIndex(0);
         availabilityComboBox.setSelectedIndex(0);
         cleaningStatusComboBox.setSelectedIndex(0);
         priceField.setText("");

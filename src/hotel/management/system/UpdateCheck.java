@@ -10,6 +10,7 @@ public class UpdateCheck extends JFrame implements ActionListener {
     Choice ccustomer;
     JTextField tfroom, tfname, tfcheckin, tfpaid, tfpending; 
     JButton update, check, back;
+    private TransactionManager txManager;
     
     public UpdateCheck(){
         // Modern UI setup
@@ -42,7 +43,7 @@ public class UpdateCheck extends JFrame implements ActionListener {
         add(formPanel);
         
         // Form components
-        JLabel lblid = new JLabel("Customer ID");
+        JLabel lblid = new JLabel("Document ID");
         lblid.setBounds(30, 30, 120, 25);
         lblid.setFont(new Font("SansSerif", Font.BOLD, 14));
         formPanel.add(lblid);
@@ -54,14 +55,31 @@ public class UpdateCheck extends JFrame implements ActionListener {
         
         try {
             Conn c = new Conn();
-            // Populate with customer_id from the new schema
-            ResultSet rs = c.s.executeQuery("SELECT customer_id FROM customer");
+            // Display document numbers from database instead of customer_id
+            ResultSet rs = c.s.executeQuery("SELECT customer_id, document_type, document_number FROM customer ORDER BY document_number");
             while (rs.next()){
-                ccustomer.add(rs.getString("customer_id"));
+                String customerId = rs.getString("customer_id");
+                String docType = rs.getString("document_type");
+                String docNumber = rs.getString("document_number");
+                // Store customer_id as hidden value, but show document number to user
+                ccustomer.add(docNumber + " (" + docType + ") [" + customerId + "]");
             }
         } catch(Exception e){
             e.printStackTrace();
         }
+        
+        // Add ItemListener to automatically load customer data when selection changes
+        ccustomer.addItemListener(new ItemListener() {
+            public void itemStateChanged(ItemEvent ie) {
+                if (ie.getStateChange() == ItemEvent.SELECTED) {
+                    // Extract the customer_id from the selection string
+                    String selection = ccustomer.getSelectedItem();
+                    String customerId = selection.substring(selection.lastIndexOf("[") + 1, selection.lastIndexOf("]"));
+                    // Load customer data automatically when dropdown selection changes
+                    loadCustomerData(customerId);
+                }
+            }
+        });
         
         JLabel lblroom = new JLabel("Room Number");
         lblroom.setBounds(30, 70, 120, 25);
@@ -192,8 +210,10 @@ public class UpdateCheck extends JFrame implements ActionListener {
     public void actionPerformed(ActionEvent ae){
         if(ae.getSource() == check){
             String id = ccustomer.getSelectedItem();
+            // Extract the customer_id from the selection string
+            String customerId = id.substring(id.lastIndexOf("[") + 1, id.lastIndexOf("]"));
             // Query using new schema column: customer_id
-            String query = "SELECT * FROM customer WHERE customer_id = '" + id + "'";
+            String query = "SELECT * FROM customer WHERE customer_id = '" + customerId + "'";
             try{
                 Conn c = new Conn();
                 ResultSet rs = c.s.executeQuery(query);
@@ -214,14 +234,16 @@ public class UpdateCheck extends JFrame implements ActionListener {
                         tfpending.setText(String.format("%.2f", pendingAmount)); // Format to 2 decimal places
                     }
                 } else {
-                    JOptionPane.showMessageDialog(this, "No customer found with ID: " + id, "Not Found", JOptionPane.WARNING_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "No customer found with ID: " + customerId, "Not Found", JOptionPane.WARNING_MESSAGE);
                 }
             } catch(Exception e){
                 e.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Error retrieving data: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
             }
         } else if(ae.getSource() == update){
-            String customerId = ccustomer.getSelectedItem();
+            String id = ccustomer.getSelectedItem();
+            // Extract the customer_id from the selection string
+            String customerId = id.substring(id.lastIndexOf("[") + 1, id.lastIndexOf("]"));
             String room = tfroom.getText();
             String name = tfname.getText();
             String checkin = tfcheckin.getText();
@@ -241,21 +263,144 @@ public class UpdateCheck extends JFrame implements ActionListener {
                     return;
                 }
                 
-                Conn c = new Conn();
-                // Update customer using new column names: room_number, check_in_time, and customer_id
-                c.s.executeUpdate("UPDATE customer SET room_number = '" + room + "', name = '" + name + "', check_in_time = '" + checkin + "', deposit = '" + deposit + "' WHERE customer_id = '" + customerId + "'");
-                JOptionPane.showMessageDialog(this, "Customer check status updated successfully", "Success", JOptionPane.INFORMATION_MESSAGE);
-                setVisible(false);
-                new Reception();
+                // Initialize transaction manager and begin transaction
+                txManager = new TransactionManager("admin");
+                String txId = txManager.beginTransaction();
+                
+                // Create a new connection that will be managed by the transaction manager
+                // instead of using a separate connection
+                Connection conn = txManager.getConnection();
+                
+                // First verify the customer still exists (check for concurrent deletion)
+                PreparedStatement checkStmt = conn.prepareStatement(
+                    "SELECT customer_id FROM customer WHERE customer_id = ?"
+                );
+                checkStmt.setString(1, customerId);
+                ResultSet checkRs = checkStmt.executeQuery();
+                
+                if (!checkRs.next()) {
+                    if (txManager.isTransactionActive()) {
+                        txManager.rollbackTransaction("Customer no longer exists");
+                    }
+                    JOptionPane.showMessageDialog(this, "The customer record no longer exists. It may have been deleted by another user.", 
+                        "Record Not Found", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                
+                // Update customer using prepared statement to avoid SQL injection
+                PreparedStatement pstmt = conn.prepareStatement(
+                    "UPDATE customer SET room_number = ?, name = ?, check_in_time = ?, deposit = ? WHERE customer_id = ?"
+                );
+                pstmt.setString(1, room);
+                pstmt.setString(2, name);
+                pstmt.setString(3, checkin);
+                pstmt.setString(4, deposit);
+                pstmt.setString(5, customerId);
+                
+                int rowsAffected = pstmt.executeUpdate();
+                
+                if (rowsAffected > 0) {
+                    // Commit the transaction
+                    txManager.commitTransaction();
+                    
+                    // Verify the update by reading back from database
+                    PreparedStatement verifyStmt = conn.prepareStatement(
+                        "SELECT deposit FROM customer WHERE customer_id = ?"
+                    );
+                    verifyStmt.setString(1, customerId);
+                    ResultSet verifyRs = verifyStmt.executeQuery();
+                    
+                    if (verifyRs.next()) {
+                        String updatedDeposit = verifyRs.getString("deposit");
+                        System.out.println("Verified update - New deposit: " + updatedDeposit);
+                    }
+                    
+                    JOptionPane.showMessageDialog(this, 
+                        "Customer check status updated successfully\nTransaction ID: " + txManager.getTransactionId(), 
+                        "Success", JOptionPane.INFORMATION_MESSAGE);
+                    setVisible(false);
+                    dispose();
+                } else {
+                    // If no rows were affected, roll back the transaction
+                    if (txManager.isTransactionActive()) {
+                        txManager.rollbackTransaction("No rows updated");
+                    }
+                    
+                    JOptionPane.showMessageDialog(this, 
+                        "Failed to update customer. Please try again.", 
+                        "Update Failed", JOptionPane.ERROR_MESSAGE);
+                }
             } catch(NumberFormatException e) {
                 JOptionPane.showMessageDialog(this, "Deposit must be a valid number", "Input Error", JOptionPane.WARNING_MESSAGE);
+            } catch(SQLException ex) {
+                // Handle specific SQL exceptions
+                if (txManager != null && txManager.isTransactionActive()) {
+                    try {
+                        if (ex.getMessage().contains("Deadlock")) {
+                            txManager.logDeadlock(ex.getMessage());
+                            JOptionPane.showMessageDialog(this,
+                                "Transaction deadlock detected. Please try again.",
+                                "Deadlock Error", JOptionPane.ERROR_MESSAGE);
+                        } else if (ex.getMessage().contains("Optimistic lock failure")) {
+                            JOptionPane.showMessageDialog(this,
+                                "This record was modified by another user. Please refresh and try again.",
+                                "Concurrent Modification", JOptionPane.ERROR_MESSAGE);
+                        } else {
+                            JOptionPane.showMessageDialog(this, 
+                                "Database error: " + ex.getMessage(), 
+                                "SQL Error", JOptionPane.ERROR_MESSAGE);
+                        }
+                        
+                        txManager.rollbackTransaction("SQL error: " + ex.getMessage());
+                    } catch (SQLException rollbackEx) {
+                        System.err.println("Error during rollback: " + rollbackEx.getMessage());
+                    }
+                }
+                ex.printStackTrace();
             } catch(Exception e){
+                // Roll back the transaction for any other exceptions
+                if (txManager != null && txManager.isTransactionActive()) {
+                    try {
+                        txManager.rollbackTransaction("Error: " + e.getMessage());
+                    } catch (SQLException rollbackEx) {
+                        System.err.println("Error during rollback: " + rollbackEx.getMessage());
+                    }
+                }
+                
                 e.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Error updating data: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Error updating data: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         } else {
             setVisible(false);
-            new Reception();
+            dispose(); // Just dispose this window without creating a new Reception window
+        }
+    }
+    
+    private void loadCustomerData(String customerId) {
+        String query = "SELECT * FROM customer WHERE customer_id = '" + customerId + "'";
+        try {
+            Conn c = new Conn();
+            ResultSet rs = c.s.executeQuery(query);
+            if (rs.next()) {
+                tfroom.setText(rs.getString("room_number"));
+                tfname.setText(rs.getString("name"));
+                tfcheckin.setText(rs.getString("check_in_time"));
+                tfpaid.setText(rs.getString("deposit"));
+                
+                ResultSet rs2 = c.s.executeQuery("SELECT * FROM room WHERE room_number = '" + tfroom.getText() + "'");
+                if (rs2.next()) {
+                    String priceStr = rs2.getString("price");
+                    double price = Double.parseDouble(priceStr);
+                    double paid = Double.parseDouble(tfpaid.getText());
+                    double pendingAmount = price - paid;
+                    tfpending.setText(String.format("%.2f", pendingAmount));
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "No customer found with ID: " + customerId, "Not Found", JOptionPane.WARNING_MESSAGE);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error retrieving data: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }
     

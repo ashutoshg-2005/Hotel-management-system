@@ -162,23 +162,137 @@ public class FeedbackForm extends JFrame implements ActionListener {
                 default: numericRating = "2"; break; // Poor
             }
 
+            // Use TransactionManager for feedback submission
+            TransactionManager txManager = null;
+            
             try {
+                // Parse customer ID and room number
+                int customerID = Integer.parseInt(customerIDStr);
+                int roomNumber = Integer.parseInt(roomNumberStr);
+                
+                txManager = new TransactionManager("front_desk");
+                txManager.beginTransaction();
+                
                 Conn conn = new Conn();
-                // Insert into feedback table with new schema columns
-                String query = "INSERT INTO feedback (customer_id, room_number, rating, comments) VALUES (?, ?, ?, ?)";
-                PreparedStatement pst = conn.c.prepareStatement(query);
-                pst.setInt(1, Integer.parseInt(customerIDStr));
-                pst.setInt(2, Integer.parseInt(roomNumberStr));
-                pst.setString(3, numericRating);
-                pst.setString(4, comments);
-                pst.executeUpdate();
-                JOptionPane.showMessageDialog(this, "Feedback Submitted Successfully", "Success", JOptionPane.INFORMATION_MESSAGE);
-                setVisible(false);
+                
+                // First verify that the customer exists and is in the specified room
+                ResultSet rs = conn.executeQuery(
+                    "SELECT * FROM customer WHERE customer_id = ? AND room_number = ?", 
+                    customerID, roomNumber
+                );
+                
+                if (!rs.next()) {
+                    JOptionPane.showMessageDialog(
+                        this, 
+                        "No matching customer found for this ID and room number.", 
+                        "Validation Error", 
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                    
+                    // Rollback the transaction
+                    if (txManager.isTransactionActive()) {
+                        txManager.rollbackTransaction("No matching customer found");
+                    }
+                    return;
+                }
+                
+                // Insert into feedback table
+                int result = conn.executeUpdate(
+                    "INSERT INTO feedback (customer_id, room_number, rating, comments) VALUES (?, ?, ?, ?)",
+                    customerID, roomNumber, numericRating, comments
+                );
+                
+                if (result > 0) {
+                    // Commit the transaction
+                    txManager.commitTransaction();
+                    
+                    JOptionPane.showMessageDialog(
+                        this, 
+                        "Feedback Submitted Successfully\nTransaction ID: " + txManager.getTransactionId(), 
+                        "Success", 
+                        JOptionPane.INFORMATION_MESSAGE
+                    );
+                    setVisible(false);
+                } else {
+                    // Rollback if no rows were affected
+                    if (txManager.isTransactionActive()) {
+                        txManager.rollbackTransaction("Failed to insert feedback");
+                    }
+                    
+                    JOptionPane.showMessageDialog(
+                        this, 
+                        "Failed to submit feedback. Please try again.", 
+                        "Error", 
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                }
             } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(this, "Customer ID and Room Number must be numeric", "Input Error", JOptionPane.ERROR_MESSAGE);
-            } catch (Exception e) {
-                e.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Error submitting feedback: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(
+                    this, 
+                    "Customer ID and Room Number must be numeric", 
+                    "Input Error", 
+                    JOptionPane.ERROR_MESSAGE
+                );
+            } catch (SQLException ex) {
+                // Rollback the transaction
+                if (txManager != null && txManager.isTransactionActive()) {
+                    try {
+                        txManager.rollbackTransaction("SQL error: " + ex.getMessage());
+                    } catch (SQLException rollbackEx) {
+                        System.err.println("Error during rollback: " + rollbackEx.getMessage());
+                    }
+                }
+                
+                // Handle specific SQL errors
+                if (ex.getMessage().contains("foreign key constraint fails")) {
+                    JOptionPane.showMessageDialog(
+                        this,
+                        "The customer ID or room number is invalid.",
+                        "Foreign Key Error",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                } else if (ex.getMessage().contains("Deadlock")) {
+                    JOptionPane.showMessageDialog(
+                        this,
+                        "Transaction deadlock detected. Please try again.",
+                        "Deadlock Error",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                    
+                    // Log the deadlock
+                    if (txManager != null) {
+                        try {
+                            txManager.logDeadlock(ex.getMessage());
+                        } catch (SQLException logEx) {
+                            System.err.println("Error logging deadlock: " + logEx.getMessage());
+                        }
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(
+                        this,
+                        "Database error: " + ex.getMessage(),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                }
+                ex.printStackTrace();
+            } catch (Exception ex) {
+                // Rollback the transaction
+                if (txManager != null && txManager.isTransactionActive()) {
+                    try {
+                        txManager.rollbackTransaction("Unexpected error: " + ex.getMessage());
+                    } catch (SQLException rollbackEx) {
+                        System.err.println("Error during rollback: " + rollbackEx.getMessage());
+                    }
+                }
+                
+                JOptionPane.showMessageDialog(
+                    this,
+                    "An unexpected error occurred: " + ex.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+                );
+                ex.printStackTrace();
             }
         } else if (ae.getSource() == back) {
             setVisible(false);

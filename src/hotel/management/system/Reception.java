@@ -19,7 +19,7 @@ public class Reception extends JFrame {
     
     public Reception() {
         setTitle("Hotel Management System - Reception");
-        setBounds(530, 200, 850, 650);
+        setBounds(530, 200, 850, 700);
         contentPane = new GradientPanel();
         contentPane.setLayout(null);
         setContentPane(contentPane);
@@ -63,85 +63,71 @@ public class Reception extends JFrame {
         
         // Create buttons - adjust Y positions to account for header panel
         AnimatedButton btnNewCustomerForm = new AnimatedButton("New Customer Form");
-        btnNewCustomerForm.setBounds(10, 70, 200, 40);  // Y position adjusted from 30 to 70
+        btnNewCustomerForm.setBounds(10, 70, 200, 40);
         btnNewCustomerForm.addActionListener(e -> {
             new AddCustomer().setVisible(true);
         });
         contentPane.add(btnNewCustomerForm);
         
         AnimatedButton btnRoom = new AnimatedButton("Room");
-        btnRoom.setBounds(10, 120, 200, 40);  // Y position adjusted
+        btnRoom.setBounds(10, 120, 200, 40);
         btnRoom.addActionListener(e -> {
             new Room().setVisible(true);
         });
         contentPane.add(btnRoom);
         
         AnimatedButton btnDepartment = new AnimatedButton("Department");
-        btnDepartment.setBounds(10, 170, 200, 40);  // Y position adjusted
+        btnDepartment.setBounds(10, 170, 200, 40);
         btnDepartment.addActionListener(e -> {
             new Department().setVisible(true);
         });
         contentPane.add(btnDepartment);
         
-        AnimatedButton btnEmployeeInfo = new AnimatedButton("All Employee Info");
-        btnEmployeeInfo.setBounds(10, 220, 200, 40);  // Y position adjusted
-        btnEmployeeInfo.addActionListener(e -> {
-            new EmployeeInfo().setVisible(true);
-        });
-        contentPane.add(btnEmployeeInfo);
-        
-        AnimatedButton btnCustomerInfo = new AnimatedButton("Customer Info");
-        btnCustomerInfo.setBounds(10, 270, 200, 40);  // Y position adjusted
-        btnCustomerInfo.addActionListener(e -> {
-            new CustomerInfo().setVisible(true);
-        });
-        contentPane.add(btnCustomerInfo);
-        
-        AnimatedButton btnManagerInfo = new AnimatedButton("Manager Info");
-        btnManagerInfo.setBounds(10, 320, 200, 40);  // Y position adjusted
-        btnManagerInfo.addActionListener(e -> {
-            new ManagerInfo().setVisible(true);
-        });
-        contentPane.add(btnManagerInfo);
-        
         AnimatedButton btnCheckOut = new AnimatedButton("Check Out");
-        btnCheckOut.setBounds(10, 370, 200, 40);  // Y position adjusted
+        btnCheckOut.setBounds(10, 220, 200, 40);
         btnCheckOut.addActionListener(e -> {
             new Checkout().setVisible(true);
         });
         contentPane.add(btnCheckOut);
         
         AnimatedButton btnUpdateCheck = new AnimatedButton("Update Check Status");
-        btnUpdateCheck.setBounds(10, 420, 200, 40);  // Y position adjusted
+        btnUpdateCheck.setBounds(10, 270, 200, 40);
         btnUpdateCheck.addActionListener(e -> {
             new UpdateCheck().setVisible(true);
         });
         contentPane.add(btnUpdateCheck);
         
         AnimatedButton btnUpdateRoom = new AnimatedButton("Update Room Status");
-        btnUpdateRoom.setBounds(10, 470, 200, 40);  // Y position adjusted
+        btnUpdateRoom.setBounds(10, 320, 200, 40);
         btnUpdateRoom.addActionListener(e -> {
             new UpdateRoom().setVisible(true);
         });
         contentPane.add(btnUpdateRoom);
         
         AnimatedButton btnPickUp = new AnimatedButton("Pick up Service");
-        btnPickUp.setBounds(10, 520, 200, 40);  // Y position adjusted
+        btnPickUp.setBounds(10, 370, 200, 40);
         btnPickUp.addActionListener(e -> {
             new Pickup().setVisible(true);
         });
         contentPane.add(btnPickUp);
         
         AnimatedButton btnSearchRoom = new AnimatedButton("Search Room");
-        btnSearchRoom.setBounds(10, 570, 200, 40);  // Y position adjusted
+        btnSearchRoom.setBounds(10, 420, 200, 40);
         btnSearchRoom.addActionListener(e -> {
             new SearchRoom().setVisible(true);
         });
         contentPane.add(btnSearchRoom);
         
+        AnimatedButton btnSummaries = new AnimatedButton("Summaries");
+        btnSummaries.setBounds(10, 470, 200, 40);
+        btnSummaries.addActionListener(e -> {
+            new DatabaseUtilities().setVisible(true);
+        });
+        contentPane.add(btnSummaries);
+        
         // Add status bar at bottom
         JPanel statusBar = new JPanel();
-        statusBar.setBounds(0, 620, 850, 30);
+        statusBar.setBounds(0, 670, 850, 30);  // Adjusted position for added button
         statusBar.setBackground(new Color(45, 62, 80));
         JLabel statusLabel = new JLabel("Hotel Management System | Reception Panel");
         statusLabel.setForeground(Color.WHITE);

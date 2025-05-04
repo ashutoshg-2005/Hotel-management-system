@@ -174,7 +174,7 @@ public class SearchRoom extends JFrame implements ActionListener {
             }
         } else {
             setVisible(false);
-            new Reception();
+            dispose(); // Just dispose this window without creating a new Reception window
         }
     }
     

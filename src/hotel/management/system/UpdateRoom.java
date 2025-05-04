@@ -5,10 +5,9 @@ import javax.swing.*;
 import java.awt.event.*;
 import java.sql.*;
 
-
 public class UpdateRoom extends JFrame implements ActionListener {
-    Choice ccustomer;
-    JTextField tfroom, tfavailable, tfstatus;
+    Choice croom;
+    JTextField tfavailable, tfstatus;
     JButton check, update, back;
 
     public static void main(String[] args) {
@@ -51,49 +50,34 @@ public class UpdateRoom extends JFrame implements ActionListener {
         add(formPanel);
         
         // Form components
-        JLabel lblid = new JLabel("Customer ID");
-        lblid.setBounds(30, 30, 120, 25);
-        lblid.setFont(new Font("SansSerif", Font.BOLD, 14));
-        formPanel.add(lblid);
+        JLabel lblroom = new JLabel("Room Number");
+        lblroom.setBounds(30, 30, 120, 25);
+        lblroom.setFont(new Font("SansSerif", Font.BOLD, 14));
+        formPanel.add(lblroom);
 
-        ccustomer = new Choice();
-        ccustomer.setBounds(170, 30, 140, 25);
-        ccustomer.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        formPanel.add(ccustomer);
+        croom = new Choice();
+        croom.setBounds(170, 30, 140, 25);
+        croom.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        formPanel.add(croom);
 
         try {
             Conn c = new Conn();
-            // Populate the choice with customer_id from the new schema
-            ResultSet rs = c.s.executeQuery("SELECT customer_id FROM customer");
+            // Populate the choice with room numbers from the room table
+            ResultSet rs = c.s.executeQuery("SELECT room_number FROM room ORDER BY room_number");
             while (rs.next()) {
-                ccustomer.add(rs.getString("customer_id"));
+                croom.add(rs.getString("room_number"));
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        JLabel lblroom = new JLabel("Room Number");
-        lblroom.setBounds(30, 80, 120, 25);
-        lblroom.setFont(new Font("SansSerif", Font.BOLD, 14));
-        formPanel.add(lblroom);
-
-        tfroom = new JTextField();
-        tfroom.setBounds(170, 80, 140, 25);
-        tfroom.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        tfroom.setBackground(Color.WHITE);
-        tfroom.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(200, 200, 200)),
-                BorderFactory.createEmptyBorder(2, 5, 2, 5)));
-        tfroom.setEditable(false); // Make read-only
-        formPanel.add(tfroom);
-
         JLabel lblavail = new JLabel("Availability");
-        lblavail.setBounds(30, 130, 120, 25);
+        lblavail.setBounds(30, 80, 120, 25);
         lblavail.setFont(new Font("SansSerif", Font.BOLD, 14));
         formPanel.add(lblavail);
 
         tfavailable = new JTextField();
-        tfavailable.setBounds(170, 130, 140, 25);
+        tfavailable.setBounds(170, 80, 140, 25);
         tfavailable.setFont(new Font("SansSerif", Font.PLAIN, 14));
         tfavailable.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(200, 200, 200)),
@@ -101,40 +85,55 @@ public class UpdateRoom extends JFrame implements ActionListener {
         formPanel.add(tfavailable);
 
         JLabel lblstatus = new JLabel("Cleaning Status");
-        lblstatus.setBounds(30, 180, 120, 25);
+        lblstatus.setBounds(30, 130, 120, 25);
         lblstatus.setFont(new Font("SansSerif", Font.BOLD, 14));
         formPanel.add(lblstatus);
 
         tfstatus = new JTextField();
-        tfstatus.setBounds(170, 180, 140, 25);
+        tfstatus.setBounds(170, 130, 140, 25);
         tfstatus.setFont(new Font("SansSerif", Font.PLAIN, 14));
         tfstatus.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(200, 200, 200)),
                 BorderFactory.createEmptyBorder(2, 5, 2, 5)));
         formPanel.add(tfstatus);
         
+        // Add ItemListener to automatically load room data when selection changes
+        croom.addItemListener(new ItemListener() {
+            public void itemStateChanged(ItemEvent ie) {
+                if (ie.getStateChange() == ItemEvent.SELECTED) {
+                    // Load room data automatically when dropdown selection changes
+                    loadRoomData(croom.getSelectedItem());
+                }
+            }
+        });
+        
         // Help label
-        JLabel helpLabel = new JLabel("Click CHECK to load room data first");
-        helpLabel.setBounds(30, 220, 280, 20);
+        JLabel helpLabel = new JLabel("Room data loads automatically");
+        helpLabel.setBounds(30, 180, 280, 20);
         helpLabel.setFont(new Font("SansSerif", Font.ITALIC, 12));
         helpLabel.setForeground(new Color(100, 100, 100));
         formPanel.add(helpLabel);
 
         // Use AnimatedButton instead of regular JButton
         check = new AnimatedButton("CHECK");
-        check.setBounds(30, 260, 90, 35);
+        check.setBounds(30, 220, 90, 35);
         check.addActionListener(this);
         formPanel.add(check);
 
         update = new AnimatedButton("UPDATE");
-        update.setBounds(130, 260, 90, 35);
+        update.setBounds(130, 220, 90, 35);
         update.addActionListener(this);
         formPanel.add(update);
 
         back = new AnimatedButton("BACK");
-        back.setBounds(230, 260, 90, 35);
+        back.setBounds(230, 220, 90, 35);
         back.addActionListener(this);
         formPanel.add(back);
+        
+        // Load initial room data
+        if (croom.getItemCount() > 0) {
+            loadRoomData(croom.getItem(0));
+        }
         
         // Image panel with improved styling
         JPanel imagePanel = new JPanel(new BorderLayout());
@@ -172,37 +171,29 @@ public class UpdateRoom extends JFrame implements ActionListener {
         setVisible(true);
     }
 
-    public void actionPerformed(ActionEvent ae) {
-        if (ae.getSource() == check) {
-            String id = ccustomer.getSelectedItem();
-            // Query using new schema: customer_id and room_number
-            String query = "SELECT * FROM customer WHERE customer_id = '" + id + "'";
-            try {
-                Conn c = new Conn();
-                ResultSet rs = c.s.executeQuery(query);
-                if (rs.next()) {
-                    // Set room number from customer table (new schema column name: room_number)
-                    tfroom.setText(rs.getString("room_number"));
-                }
-                // Now lookup the room details using new column names
-                ResultSet rs2 = c.s.executeQuery("SELECT * FROM room WHERE room_number = '" + tfroom.getText() + "'");
-                if (rs2.next()) {
-                    tfavailable.setText(rs2.getString("availability"));
-                    tfstatus.setText(rs2.getString("cleaning_status"));
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Error retrieving room data: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+    private void loadRoomData(String roomNumber) {
+        try {
+            Conn c = new Conn();
+            ResultSet rs = c.s.executeQuery("SELECT * FROM room WHERE room_number = '" + roomNumber + "'");
+            if (rs.next()) {
+                tfavailable.setText(rs.getString("availability"));
+                tfstatus.setText(rs.getString("cleaning_status"));
             }
-        } else if (ae.getSource() == update) {
-            String id = ccustomer.getSelectedItem();
-            String room = tfroom.getText();
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error retrieving room data: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    public void actionPerformed(ActionEvent ae) {
+        if (ae.getSource() == update) {
+            String room = croom.getSelectedItem();
             String available = tfavailable.getText();
             String status = tfstatus.getText();
             
             // Basic validation
             if (room.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Please check customer data first", "Input Error", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Please select a room", "Input Error", JOptionPane.WARNING_MESSAGE);
                 return;
             }
             
@@ -210,21 +201,126 @@ public class UpdateRoom extends JFrame implements ActionListener {
                 JOptionPane.showMessageDialog(this, "All fields are required", "Input Error", JOptionPane.WARNING_MESSAGE);
                 return;
             }
-            
-            try {
-                Conn c = new Conn();
-                // Update using new column names
-                c.s.executeUpdate("UPDATE room SET availability = '" + available + "', cleaning_status = '" + status + "' WHERE room_number = '" + room + "'");
-                JOptionPane.showMessageDialog(this, "Room status updated successfully", "Success", JOptionPane.INFORMATION_MESSAGE);
-                setVisible(false);
-                new Reception();
-            } catch (Exception e) {
-                e.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Error updating room status: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+
+            // Validate availability format
+            if (!available.equals("Available") && !available.equals("Occupied")) {
+                JOptionPane.showMessageDialog(this, "Availability must be 'Available' or 'Occupied'", 
+                    "Input Error", JOptionPane.WARNING_MESSAGE);
+                return;
             }
+
+            // Validate cleaning status format
+            if (!status.equals("Clean") && !status.equals("Dirty") && !status.equals("In Progress")) {
+                JOptionPane.showMessageDialog(this, "Cleaning Status must be 'Clean', 'Dirty', or 'In Progress'", 
+                    "Input Error", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            
+            // Use TransactionManager for room update with optimistic locking
+            TransactionManager txManager = null;
+            try {
+                txManager = new TransactionManager("admin");
+                txManager.beginTransaction();
+                
+                Conn conn = new Conn();
+                
+                // Get current room details including version for optimistic locking
+                ResultSet rs = conn.executeQuery("SELECT price, bed_type, version FROM room WHERE room_number = ?", 
+                                              Integer.parseInt(room));
+                
+                if (rs.next()) {
+                    int currentVersion = rs.getInt("version");
+                    double price = rs.getDouble("price");
+                    String bedType = rs.getString("bed_type");
+                    
+                    // Call stored procedure to update with optimistic locking instead of direct SQL
+                    CallableStatement cs = conn.c.prepareCall("{CALL update_room_with_version(?, ?, ?, ?, ?, ?)}");
+                    cs.setInt(1, Integer.parseInt(room));
+                    cs.setString(2, available);
+                    cs.setString(3, status);
+                    cs.setDouble(4, price);
+                    cs.setString(5, bedType);
+                    cs.setInt(6, currentVersion);
+                    
+                    // Execute and get new version
+                    ResultSet rsUpdate = cs.executeQuery();
+                    if (rsUpdate.next()) {
+                        int newVersion = rsUpdate.getInt("version");
+                        System.out.println("Room " + room + " updated to version " + newVersion);
+                    }
+                    
+                    // Commit the transaction
+                    txManager.commitTransaction();
+                    
+                    JOptionPane.showMessageDialog(this, 
+                        "Room status updated successfully\nTransaction ID: " + txManager.getTransactionId(), 
+                        "Success", JOptionPane.INFORMATION_MESSAGE);
+                    setVisible(false);
+                    dispose();
+                } else {
+                    throw new SQLException("Room not found: " + room);
+                }
+            } catch (SQLException ex) {
+                // Handle specific error types
+                if (ex.getMessage().contains("Optimistic lock failure")) {
+                    JOptionPane.showMessageDialog(this, 
+                        "Room was updated by another user. Please try again with fresh data.", 
+                        "Concurrency Error", JOptionPane.ERROR_MESSAGE);
+                } else if (ex.getMessage().contains("Lock wait timeout")) {
+                    JOptionPane.showMessageDialog(this, 
+                        "Database is busy. Please try again in a moment.", 
+                        "Timeout Error", JOptionPane.ERROR_MESSAGE);
+                } else if (ex.getMessage().contains("Deadlock")) {
+                    JOptionPane.showMessageDialog(this, 
+                        "Transaction deadlock detected. Please try again.", 
+                        "Deadlock Error", JOptionPane.ERROR_MESSAGE);
+                    
+                    // Log the deadlock if transaction manager was initialized
+                    if (txManager != null) {
+                        try {
+                            txManager.logDeadlock(ex.getMessage());
+                        } catch (SQLException logEx) {
+                            System.err.println("Error logging deadlock: " + logEx.getMessage());
+                        }
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(this, 
+                        "Error updating room status: " + ex.getMessage(), 
+                        "Database Error", JOptionPane.ERROR_MESSAGE);
+                }
+                
+                // Roll back transaction if it's active
+                if (txManager != null && txManager.isTransactionActive()) {
+                    try {
+                        txManager.rollbackTransaction("Error: " + ex.getMessage());
+                    } catch (SQLException rollbackEx) {
+                        System.err.println("Error during rollback: " + rollbackEx.getMessage());
+                    }
+                }
+                
+                ex.printStackTrace();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, 
+                    "Unexpected error: " + ex.getMessage(), 
+                    "System Error", JOptionPane.ERROR_MESSAGE);
+                
+                // Roll back transaction if it's active
+                if (txManager != null && txManager.isTransactionActive()) {
+                    try {
+                        txManager.rollbackTransaction("Unexpected error: " + ex.getMessage());
+                    } catch (SQLException rollbackEx) {
+                        System.err.println("Error during rollback: " + rollbackEx.getMessage());
+                    }
+                }
+                
+                ex.printStackTrace();
+            }
+        } else if (ae.getSource() == check) {
+            // Just load the current room data
+            loadRoomData(croom.getSelectedItem());
         } else { // back button
             setVisible(false);
-            new Reception();
+            dispose();
         }
     }
 }

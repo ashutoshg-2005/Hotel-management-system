@@ -121,7 +121,7 @@ public class ManagerInfo extends JFrame implements ActionListener {
     
     public void actionPerformed(ActionEvent ae){
         setVisible(false);
-        new Reception();
+        dispose(); // Just dispose this window without creating a new Reception window
     }
     
     public static void main(String[] args){
